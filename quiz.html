@@ -97,11 +97,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
     <div class="info-card"><div class="info-val">3</div><div class="info-label">Domains</div></div>
     <div class="info-card"><div class="info-val">+10</div><div class="info-label">XP per correct</div></div>
   </div>
+  <div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.3);border-radius:14px;padding:16px;margin-bottom:16px;">
+    <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--gold);font-weight:700;margin-bottom:4px;">⚡ QUICK MODE</div>
+    <div style="font-size:0.82rem;color:var(--muted);margin-bottom:12px;">10 random questions · no timer · done in ~5 min</div>
+    <button class="btn" style="width:100%;background:linear-gradient(135deg,var(--gold),var(--orange));color:#0f1923;" onclick="startQuickQuiz()">Quick Quiz ⚡</button>
+  </div>
+  <div style="font-size:0.8rem;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">— or full test —</div>
   <div class="timer-toggle">
     <span>120-min Timer</span>
     <div class="toggle" id="timerToggle" onclick="this.classList.toggle('on')"></div>
   </div>
-  <button class="btn btn-primary" onclick="startTest()">Start Test 🚀</button>
+  <button class="btn btn-primary" onclick="startTest()">Full Test (44 Qs) 🚀</button>
   <div style="margin-top:12px;"><a href="index.html" class="back-btn">← Back to Hub</a></div>
 </div>
 
@@ -291,7 +297,8 @@ let useTimer = false;
 
 function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
-function selectQuestions() {
+function selectQuestions(count) {
+  if (count) return shuffle([...QUESTIONS]).slice(0, count);
   // Separate item set questions and standalone
   const set1Qs = QUESTIONS.filter(q=>q.itemSet==='set1');
   const set2Qs = QUESTIONS.filter(q=>q.itemSet==='set2');
@@ -319,9 +326,11 @@ function selectQuestions() {
   return result.slice(0, 44);
 }
 
-function startTest() {
-  useTimer = document.getElementById('timerToggle').classList.contains('on');
-  selectedQuestions = selectQuestions();
+function startQuickQuiz() { startTest(10); }
+
+function startTest(count) {
+  useTimer = count ? false : document.getElementById('timerToggle').classList.contains('on');
+  selectedQuestions = selectQuestions(count);
   currentIndex = 0; score = 0; xpEarned = 0;
   domainScores = {ps:{c:0,t:0}, ls:{c:0,t:0}, ess:{c:0,t:0}};
   document.getElementById('startScreen').style.display = 'none';

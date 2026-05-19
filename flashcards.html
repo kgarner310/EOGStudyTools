@@ -19,6 +19,7 @@ a.back-btn:hover{border-color:var(--blue);color:var(--text);}
 .filter-btn{padding:8px 16px;border-radius:20px;border:2px solid #2a4a6f;background:transparent;color:var(--muted);font-size:0.85rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.15s;}
 .filter-btn:hover{border-color:var(--blue);color:var(--text);}
 .filter-btn.active{color:#0f1923;border-color:transparent;}
+.filter-btn.active.daily10{background:linear-gradient(135deg,var(--gold),var(--orange));}
 .filter-btn.active.all{background:linear-gradient(135deg,var(--green),var(--blue));}
 .filter-btn.active.ps{background:var(--ps);}
 .filter-btn.active.ls{background:var(--ls);}
@@ -104,7 +105,8 @@ a.back-btn:hover{border-color:var(--blue);color:var(--text);}
 </div>
 
 <div class="filter-row">
-  <button class="filter-btn active all" onclick="setFilter('all',this)">All (60)</button>
+  <button class="filter-btn active daily10" onclick="setFilter('daily10',this)">🎯 Daily 10</button>
+  <button class="filter-btn all" onclick="setFilter('all',this)">All (60)</button>
   <button class="filter-btn ps" onclick="setFilter('ps',this)">⚡ Physical Science</button>
   <button class="filter-btn ls" onclick="setFilter('ls',this)">🌿 Life Science</button>
   <button class="filter-btn ess" onclick="setFilter('ess',this)">🌍 Earth &amp; Space</button>
@@ -175,70 +177,70 @@ function saveProgress(p){localStorage.setItem(SAVE_KEY,JSON.stringify(p));}
 
 const CARDS = [
   // ─── PHYSICAL SCIENCE (20 cards) ───
-  {id:1,domain:'ps',front:'What is density?',back:'Density = mass ÷ volume. It measures how much matter is packed into a given space. Lead is denser than wood — same size, but much heavier. Objects denser than water sink; less dense objects float.'},
-  {id:2,domain:'ps',front:'What is solubility?',back:'How well a substance dissolves in a liquid. Salt has HIGH solubility in water (dissolves easily). Sand has LOW solubility (doesn\'t dissolve). This is a physical property you can test without changing the substance.'},
-  {id:3,domain:'ps',front:'What\'s the difference between mass and weight?',back:'Mass = the amount of matter in an object. It\'s always the same regardless of location. Weight = the force of gravity on that mass. Your weight would be different on the Moon, but your mass stays the same!'},
-  {id:4,domain:'ps',front:'What is a physical change?',back:'A change in shape, size, or state — NO new substance is formed. Examples: cutting paper ✂️, ice melting 🧊, dissolving sugar 🍬, bending a wire. You can usually reverse a physical change.'},
-  {id:5,domain:'ps',front:'What is a chemical change?',back:'A change that creates a NEW substance with different properties. Examples: burning 🔥, rusting 🪝, cooking an egg 🍳. Key clues: new color, gas produced, new smell, heat or light released. Usually hard to reverse!'},
-  {id:6,domain:'ps',front:'What are the 4 main clues that a chemical change has occurred?',back:'1. COLOR change (not just reflecting light)\n2. GAS produced (bubbles or smoke)\n3. NEW SMELL or heat/light released\n4. New substance that\'s DIFFERENT from what you started with\n\nIf you see 2+ of these = probably chemical!'},
-  {id:7,domain:'ps',front:'What is a mixture?',back:'Two or more substances physically combined but NOT chemically joined. You can still see or separate the individual parts. Examples: trail mix 🥜, sand & water, salad. Separation methods: picking apart, filtering, magnets.'},
-  {id:8,domain:'ps',front:'What is a solution?',back:'A special type of MIXTURE where one substance dissolves completely and evenly into another. You can\'t see the individual parts anymore. Examples: saltwater 🧂, lemonade 🍋, air. The dissolved substance is the SOLUTE; the liquid is the SOLVENT.'},
-  {id:9,domain:'ps',front:'How do you separate sand from water?',back:'FILTRATION: Pour the mixture through a filter (like filter paper). Sand particles are too large to pass through — they get caught. Water molecules are small enough to pass through. The sand stays on top of the filter!'},
-  {id:10,domain:'ps',front:'How do you get salt back from saltwater?',back:'EVAPORATION: Heat the saltwater until all the water evaporates into water vapor. The salt can\'t evaporate — it gets left behind as crystals. This works because salt dissolved into a solution, which filtration can\'t separate.'},
-  {id:11,domain:'ps',front:'What is gravity?',back:'A NON-CONTACT force that pulls all objects with mass toward each other. On Earth, gravity pulls everything downward toward Earth\'s center. The more mass an object has, the stronger its gravitational pull. It works across distances — no touching needed!'},
-  {id:12,domain:'ps',front:'What is friction?',back:'A CONTACT force that opposes (works against) motion between two surfaces that are touching. Rough surfaces create MORE friction. Smooth/oily surfaces create LESS friction. Friction is why sliding objects slow down and stop.'},
-  {id:13,domain:'ps',front:'What is magnetism?',back:'A NON-CONTACT force between magnetic materials. A magnet can ATTRACT (pull in) or REPEL (push away) other magnets and magnetic materials. Iron, nickel, and cobalt are magnetic. It works without touching — across a distance!'},
-  {id:14,domain:'ps',front:'What\'s the difference between contact and non-contact forces?',back:'CONTACT forces: objects must physically touch to exert force. Examples: push, pull, friction, tension, normal force.\nNON-CONTACT forces: work across a distance without touching. Examples: gravity 🌍, magnetism 🧲, static electricity ⚡'},
-  {id:15,domain:'ps',front:'What are balanced forces?',back:'Forces that are EQUAL in size and OPPOSITE in direction — they cancel each other out. Net force = ZERO. The object\'s motion does NOT change. Examples: a book sitting on a desk (gravity down = normal force up), two equal teams in tug-of-war.'},
-  {id:16,domain:'ps',front:'What are unbalanced forces?',back:'Forces where one direction is STRONGER than the other — there IS a net force. The object\'s motion CHANGES: it speeds up, slows down, or changes direction. Examples: kicking a ball 🥎, a car accelerating, a falling apple.'},
-  {id:17,domain:'ps',front:'What is net force?',back:'The TOTAL, combined force on an object after you add up all forces. Push right with 10N, friction pushes left with 4N = NET FORCE of 6N to the right. Zero net force = balanced. Any other net force = unbalanced = motion changes!'},
-  {id:18,domain:'ps',front:'What happens when unbalanced forces act on a resting object?',back:'The object ACCELERATES — it starts moving in the direction of the net force! The bigger the net force, the faster it accelerates. The more mass the object has, the harder it is to get moving (more force needed).'},
-  {id:19,domain:'ps',front:'What is a physical property?',back:'A characteristic you can observe or measure WITHOUT changing what the substance IS. Examples: color, shape, mass, volume, density, texture, magnetism, solubility, melting point, boiling point. You\'re just DESCRIBING it, not changing it.'},
-  {id:20,domain:'ps',front:'What is a chemical property?',back:'A characteristic that describes how a substance reacts or CHANGES INTO a different substance. Examples: flammability (does it burn?), ability to rust, reactivity with acid. You can only observe a chemical property when a chemical change happens.'},
+  {id:1,domain:'ps',front:'What is density?',back:'<strong>Density</strong> = mass ÷ volume — objects denser than water sink; less dense objects float.'},
+  {id:2,domain:'ps',front:'What is solubility?',back:'<strong>Solubility</strong> is how well a substance dissolves in liquid — salt dissolves easily (high solubility), sand does not (low solubility).'},
+  {id:3,domain:'ps',front:'What\'s the difference between mass and weight?',back:'<strong>Mass</strong> is always the same; <strong>weight</strong> changes with gravity — your mass stays the same on the Moon, but you\'d weigh less.'},
+  {id:4,domain:'ps',front:'What is a physical change?',back:'A <strong>physical change</strong> changes shape, size, or state but forms NO new substance — melting, cutting, and dissolving are all examples.'},
+  {id:5,domain:'ps',front:'What is a chemical change?',back:'A <strong>chemical change</strong> creates a NEW substance — burning, rusting, and cooking are examples that are usually hard to reverse.'},
+  {id:6,domain:'ps',front:'What are the 4 main clues that a chemical change has occurred?',back:'Clues for a <strong>chemical change</strong>: color change, gas produced (bubbles/smoke), new smell, or heat/light released.'},
+  {id:7,domain:'ps',front:'What is a mixture?',back:'A <strong>mixture</strong> is two or more substances physically combined but NOT chemically joined — you can still separate the parts.'},
+  {id:8,domain:'ps',front:'What is a solution?',back:'A <strong>solution</strong> is a mixture where one substance (solute) dissolves completely and evenly into another (solvent), like saltwater.'},
+  {id:9,domain:'ps',front:'How do you separate sand from water?',back:'Use <strong>filtration</strong> — sand particles are too large to pass through the filter, but water molecules pass right through.'},
+  {id:10,domain:'ps',front:'How do you get salt back from saltwater?',back:'Use <strong>evaporation</strong> — heat drives off the water as vapor, leaving the salt crystals behind (filtration won\'t work here).'},
+  {id:11,domain:'ps',front:'What is gravity?',back:'<strong>Gravity</strong> is a non-contact force that pulls all objects with mass toward each other — no touching needed.'},
+  {id:12,domain:'ps',front:'What is friction?',back:'<strong>Friction</strong> is a contact force that opposes motion between two touching surfaces — rough surfaces create more friction than smooth ones.'},
+  {id:13,domain:'ps',front:'What is magnetism?',back:'<strong>Magnetism</strong> is a non-contact force that attracts or repels magnetic materials (iron, nickel, cobalt) across a distance.'},
+  {id:14,domain:'ps',front:'What\'s the difference between contact and non-contact forces?',back:'<strong>Contact forces</strong> require touching (push, pull, friction); <strong>non-contact forces</strong> act across a distance (gravity, magnetism).'},
+  {id:15,domain:'ps',front:'What are balanced forces?',back:'<strong>Balanced forces</strong> are equal and opposite — net force is zero, so the object\'s motion does NOT change.'},
+  {id:16,domain:'ps',front:'What are unbalanced forces?',back:'<strong>Unbalanced forces</strong> have a net force in one direction, so the object speeds up, slows down, or changes direction.'},
+  {id:17,domain:'ps',front:'What is net force?',back:'<strong>Net force</strong> is the total of all forces combined — zero means balanced; anything else means motion changes.'},
+  {id:18,domain:'ps',front:'What happens when unbalanced forces act on a resting object?',back:'The object <strong>accelerates</strong> — it starts moving in the direction of the net force.'},
+  {id:19,domain:'ps',front:'What is a physical property?',back:'A <strong>physical property</strong> can be observed or measured without changing the substance — examples: color, mass, density, solubility.'},
+  {id:20,domain:'ps',front:'What is a chemical property?',back:'A <strong>chemical property</strong> describes how a substance reacts to become a different substance — examples: flammability, ability to rust.'},
 
   // ─── LIFE SCIENCE (28 cards) ───
-  {id:21,domain:'ls',front:'What does the cell membrane do?',back:'Controls what ENTERS and EXITS the cell — like a security gate. It\'s flexible and made of a thin double layer of lipids (fats) with proteins. Found in ALL cells (both plant AND animal). Without it, the cell couldn\'t regulate its contents.'},
-  {id:22,domain:'ls',front:'What does the nucleus do?',back:'The CONTROL CENTER of the cell. Contains DNA — the genetic instructions for ALL cell activities: how to grow, reproduce, respond, and make proteins. Every cell that can reproduce has a nucleus (except red blood cells). Think of it as the cell\'s "brain."'},
-  {id:23,domain:'ls',front:'What do mitochondria do?',back:'Produce ENERGY (ATP) for the cell through cellular respiration: glucose + oxygen → ATP + CO₂ + water. The "powerhouse of the cell!" Found in ALL active cells (plant and animal). More active cells (like muscle cells) have MORE mitochondria!'},
-  {id:24,domain:'ls',front:'What do chloroplasts do?',back:'Perform PHOTOSYNTHESIS — converting sunlight into glucose (food): sunlight + water + CO₂ → glucose + oxygen. Found ONLY in plant cells and algae. Contain green chlorophyll pigment, which is why plants are green! Animal cells can\'t make their own food.'},
-  {id:25,domain:'ls',front:'What does the cell wall do?',back:'Provides RIGID STRUCTURE and support for plant cells. Made of cellulose (a tough fiber). Located OUTSIDE the cell membrane. Keeps plant cells from bursting when they absorb water. This is why plants can stand upright without bones! Animal cells don\'t have cell walls.'},
-  {id:26,domain:'ls',front:'What does the vacuole do?',back:'A storage organelle. Stores water, food, waste, or other materials. Plant cells have ONE LARGE central vacuole — can take up most of the cell\'s space and helps maintain the cell\'s shape. Animal cells have small, temporary vacuoles.'},
-  {id:27,domain:'ls',front:'Plant cell vs. animal cell — what\'s different?',back:'ONLY in plant cells: chloroplasts 🌿, cell wall, large central vacuole.\nIn BOTH plant AND animal cells: nucleus, cell membrane, mitochondria, cytoplasm, ribosomes.\n\nMemory trick: Plants need to WALL off their space and CHLORO-phyll the sun!'},
-  {id:28,domain:'ls',front:'What is photosynthesis?',back:'How plants make their own food using sunlight energy.\nFormula: Sunlight + Water + CO₂ → Glucose + Oxygen\nHappens in chloroplasts. Plants use glucose for energy to grow. They release oxygen as a byproduct — the oxygen WE breathe! Plants are producers because of photosynthesis.'},
-  {id:29,domain:'ls',front:'What does the skeletal system do?',back:'FOUR main jobs:\n1. Support — gives the body its shape and structure\n2. Protection — protects organs (skull→brain, ribs→heart/lungs)\n3. Movement — gives muscles something to pull on\n4. Blood production — red blood cells made in bone marrow'},
-  {id:30,domain:'ls',front:'What does the circulatory system do?',back:'Delivers OXYGEN and NUTRIENTS to every cell in the body, and carries WASTE (CO₂) away. The heart pumps blood through blood vessels (arteries, veins, capillaries). Works with the respiratory system — lungs put O₂ INTO the blood, and circulatory system carries it everywhere.'},
-  {id:31,domain:'ls',front:'What does the respiratory system do?',back:'Brings OXYGEN into the body and removes CARBON DIOXIDE. When you inhale: O₂ goes from lungs into blood. When you exhale: CO₂ from blood goes into lungs and out. Your diaphragm muscle powers breathing. Works with circulatory system to gas-exchange every cell.'},
-  {id:32,domain:'ls',front:'What does the digestive system do?',back:'Breaks food into small NUTRIENTS the body can absorb and use. Mechanical digestion: physically breaks food down (chewing). Chemical digestion: enzymes break it into tiny molecules. Nutrients are absorbed into the bloodstream and delivered to cells for energy, growth, and repair.'},
-  {id:33,domain:'ls',front:'How do the circulatory and respiratory systems work together?',back:'They\'re a TEAM! Respiratory system: breathes in O₂ and breathes out CO₂. Circulatory system: picks up that O₂ from the lungs and delivers it to all cells; picks up CO₂ from cells and brings it back to the lungs. Without both, cells would suffocate!'},
-  {id:34,domain:'ls',front:'What is a biotic factor?',back:'A LIVING part of an ecosystem. "Bio" = life. Includes: plants, animals, fungi, bacteria, algae — any living organism. Biotic factors interact with each other AND with abiotic factors. Example: trees provide shade (biotic affecting abiotic temperature).'},
-  {id:35,domain:'ls',front:'What is an abiotic factor?',back:'A NON-LIVING part of an ecosystem. "A" = without (life). Examples: sunlight ☀️, water 💧, temperature 🌡️, soil, air, rocks, pH. Abiotic factors shape which organisms can survive in an ecosystem. No sun = no photosynthesis = no producers = no food web!'},
-  {id:36,domain:'ls',front:'What is a producer?',back:'An organism that makes its OWN FOOD through photosynthesis. Examples: grass, trees, algae, phytoplankton. They capture energy from the sun and convert it into biological energy (glucose). ALL other organisms depend on producers — they\'re the BASE of every food web!'},
-  {id:37,domain:'ls',front:'What\'s the difference between primary, secondary, and tertiary consumers?',back:'Primary consumers: eat PRODUCERS (plants). They\'re herbivores. Example: grasshoppers, rabbits, deer.\nSecondary consumers: eat primary consumers. Example: frogs, foxes.\nTertiary consumers: top predators, eat secondary consumers. Example: hawks, sharks.'},
-  {id:38,domain:'ls',front:'What is a decomposer?',back:'Organisms that break down DEAD organisms and waste, returning nutrients to the soil. Examples: bacteria, fungi, worms, some insects. Nature\'s recyclers! Without decomposers, dead matter would pile up and nutrients would be locked away from producers. They COMPLETE the cycle.'},
-  {id:39,domain:'ls',front:'How does energy flow through a food web?',back:'Sun → Producers → Primary Consumers → Secondary Consumers → Tertiary Consumers.\nAt each level, about 90% of energy is LOST as heat — only ~10% passes to the next level. That\'s why there are fewer top predators than prey — there\'s less energy to support them.'},
-  {id:40,domain:'ls',front:'What happens when one species disappears from a food web?',back:'It causes a TROPHIC CASCADE — a chain reaction! If a predator disappears → its prey overpopulates → prey\'s food gets depleted → other species also affected. If a producer disappears → herbivores lose food → carnivores that eat herbivores are also affected. Everything is connected!'},
-  {id:41,domain:'ls',front:'What is an inherited trait?',back:'A characteristic passed from parents to offspring through GENES (DNA). Examples: eye color 👁️, blood type, natural hair texture/color, height tendency, freckles, tongue rolling. Inherited traits are determined BEFORE you\'re born — they\'re in your DNA from day one.'},
-  {id:42,domain:'ls',front:'What is a learned behavior (acquired characteristic)?',back:'Something developed through EXPERIENCE and practice — NOT from genes. Examples: speaking a language 🗣️, riding a bike 🚲, a scar 🩹, reading, playing sports. Learned behaviors CANNOT be inherited by your children. Practice makes them better, but they\'re not in your DNA.'},
-  {id:43,domain:'ls',front:'What is natural selection?',back:'When organisms with traits BETTER SUITED to their environment survive more and reproduce more — passing those beneficial traits to offspring. Over many generations, the population changes. Example: darker-colored moths survive better on dark trees (camouflage). Survival of the best-fitted!'},
-  {id:44,domain:'ls',front:'What is an adaptation?',back:'A trait that helps an organism SURVIVE and REPRODUCE in its environment — developed through natural selection. Examples: polar bear\'s thick fur (cold 🐻‍❄️), cactus\'s waxy skin (dry 🌵), duck\'s webbed feet (swimming 🦆). Adaptations take many generations to develop.'},
-  {id:45,domain:'ls',front:'Why do offspring look like their parents but not be identical?',back:'Offspring inherit a UNIQUE MIX of genes from BOTH parents — creating new combinations never seen before. That\'s why siblings look alike (same parents) but not identical (different gene mix). Sexual reproduction creates genetic variation — vital for a healthy population!'},
-  {id:46,domain:'ls',front:'What is an ecosystem?',back:'All the LIVING (biotic) and NON-LIVING (abiotic) things in an area and how they INTERACT with each other. Examples: a forest 🌲, a pond 🌊, a coral reef 🐠, the Sahara desert. Different ecosystems support different communities of organisms based on their abiotic conditions.'},
-  {id:47,domain:'ls',front:'What is habitat destruction and why does it matter?',back:'When natural living environments are damaged, degraded, or completely removed (building, logging, pollution). Animals lose: shelter, food sources, water access, and breeding grounds. Populations decline or go locally extinct. It\'s the #1 cause of species becoming endangered worldwide.'},
-  {id:48,domain:'ls',front:'What is the difference between an inherited trait and a learned behavior? (examples)',back:'INHERITED (from DNA): eye color, blood type, ear shape, natural hair color, whether you can roll your tongue, your bone structure.\nLEARNED (from experience): speaking Spanish, playing softball 🥎, being afraid of spiders, a scar, strong muscles from working out.\nQuick test: Could a baby be born with it? = inherited.'},
+  {id:21,domain:'ls',front:'What does the cell membrane do?',back:'The <strong>cell membrane</strong> controls what enters and exits the cell — it\'s found in ALL cells, both plant and animal.'},
+  {id:22,domain:'ls',front:'What does the nucleus do?',back:'The <strong>nucleus</strong> is the cell\'s control center, containing DNA with instructions for all cell activities.'},
+  {id:23,domain:'ls',front:'What do mitochondria do?',back:'<strong>Mitochondria</strong> produce energy (ATP) for the cell — more active cells have more of them.'},
+  {id:24,domain:'ls',front:'What do chloroplasts do?',back:'<strong>Chloroplasts</strong> perform photosynthesis — they are found ONLY in plant cells and algae, never in animal cells.'},
+  {id:25,domain:'ls',front:'What does the cell wall do?',back:'The <strong>cell wall</strong> provides rigid support outside the cell membrane — found ONLY in plant cells, not animal cells.'},
+  {id:26,domain:'ls',front:'What does the vacuole do?',back:'The <strong>vacuole</strong> stores water, food, and waste — plant cells have ONE large central vacuole; animal cells have small ones.'},
+  {id:27,domain:'ls',front:'Plant cell vs. animal cell — what\'s different?',back:'Only plant cells have: <strong>chloroplasts</strong>, <strong>cell wall</strong>, and a large central vacuole; both share nucleus, membrane, and mitochondria.'},
+  {id:28,domain:'ls',front:'What is photosynthesis?',back:'<strong>Photosynthesis</strong>: Sunlight + Water + CO₂ → Glucose + Oxygen — happens in chloroplasts, making plants the base of all food webs.'},
+  {id:29,domain:'ls',front:'What does the skeletal system do?',back:'The <strong>skeletal system</strong> supports body shape, protects organs, enables movement, and produces red blood cells in bone marrow.'},
+  {id:30,domain:'ls',front:'What does the circulatory system do?',back:'The <strong>circulatory system</strong> pumps blood to deliver oxygen and nutrients to every cell and carry carbon dioxide away.'},
+  {id:31,domain:'ls',front:'What does the respiratory system do?',back:'The <strong>respiratory system</strong> brings oxygen into the body and removes carbon dioxide — the diaphragm muscle powers breathing.'},
+  {id:32,domain:'ls',front:'What does the digestive system do?',back:'The <strong>digestive system</strong> breaks food into nutrients small enough to absorb into the bloodstream for energy and growth.'},
+  {id:33,domain:'ls',front:'How do the circulatory and respiratory systems work together?',back:'<strong>Respiratory</strong> brings in O₂; <strong>circulatory</strong> delivers it to every cell and returns CO₂ to the lungs to breathe out.'},
+  {id:34,domain:'ls',front:'What is a biotic factor?',back:'A <strong>biotic factor</strong> is any LIVING part of an ecosystem — plants, animals, fungi, and bacteria are all biotic.'},
+  {id:35,domain:'ls',front:'What is an abiotic factor?',back:'An <strong>abiotic factor</strong> is any NON-LIVING part of an ecosystem — examples: sunlight, water, temperature, soil, and air.'},
+  {id:36,domain:'ls',front:'What is a producer?',back:'A <strong>producer</strong> makes its own food through photosynthesis and forms the base of every food web.'},
+  {id:37,domain:'ls',front:'What\'s the difference between primary, secondary, and tertiary consumers?',back:'<strong>Primary</strong> consumers eat plants; <strong>secondary</strong> eat primary consumers; <strong>tertiary</strong> are top predators.'},
+  {id:38,domain:'ls',front:'What is a decomposer?',back:'<strong>Decomposers</strong> (fungi, bacteria) break down dead organisms and return nutrients to the soil — nature\'s recyclers.'},
+  {id:39,domain:'ls',front:'How does energy flow through a food web?',back:'Energy flows Sun → producers → consumers, with about <strong>90% lost as heat</strong> at each level — that\'s why top predators are rare.'},
+  {id:40,domain:'ls',front:'What happens when one species disappears from a food web?',back:'A <strong>trophic cascade</strong> occurs — a chain reaction that ripples through the whole food web.'},
+  {id:41,domain:'ls',front:'What is an inherited trait?',back:'An <strong>inherited trait</strong> is passed from parents through genes/DNA and is present from birth — examples: eye color, blood type.'},
+  {id:42,domain:'ls',front:'What is a learned behavior (acquired characteristic)?',back:'A <strong>learned behavior</strong> is developed through experience and cannot be passed to offspring — examples: speaking a language, riding a bike.'},
+  {id:43,domain:'ls',front:'What is natural selection?',back:'<strong>Natural selection</strong>: organisms with traits better suited to their environment survive more and pass those traits to offspring.'},
+  {id:44,domain:'ls',front:'What is an adaptation?',back:'An <strong>adaptation</strong> is a trait developed over many generations that helps an organism survive in its specific environment.'},
+  {id:45,domain:'ls',front:'Why do offspring look like their parents but not be identical?',back:'Offspring inherit a <strong>unique mix of genes</strong> from BOTH parents, creating new combinations — that\'s why siblings look similar but not identical.'},
+  {id:46,domain:'ls',front:'What is an ecosystem?',back:'An <strong>ecosystem</strong> includes all living (biotic) and non-living (abiotic) things in an area and how they interact.'},
+  {id:47,domain:'ls',front:'What is habitat destruction and why does it matter?',back:'<strong>Habitat destruction</strong> removes natural environments — it\'s the #1 cause of species becoming endangered worldwide.'},
+  {id:48,domain:'ls',front:'What is the difference between an inherited trait and a learned behavior? (examples)',back:'<strong>Inherited</strong>: eye color, blood type (from DNA, born with it); <strong>Learned</strong>: speaking a language, playing softball (from experience).'},
 
   // ─── EARTH & SPACE SCIENCE (12 cards) ───
-  {id:49,domain:'ess',front:'What is evaporation?',back:'Liquid water heated by the SUN turns into water VAPOR (a gas) and rises into the atmosphere. Happens at the surface of oceans, lakes, rivers, and wet soil. The sun\'s energy is what drives this process — the engine of the water cycle! ☀️ → 💧 → vapor'},
-  {id:50,domain:'ess',front:'What is condensation?',back:'Water vapor COOLS and turns back into liquid water droplets — forming clouds, fog, and dew. The reverse of evaporation. It\'s what happens to a cold glass on a humid day — water vapor from the air condenses on the cold surface. ☁️ = tiny water droplets'},
-  {id:51,domain:'ess',front:'What is precipitation?',back:'Water falls from clouds as RAIN 🌧️, SNOW ❄️, SLEET, or HAIL when water droplets in clouds combine and get too heavy to stay up. It returns water from the atmosphere back to Earth\'s surface. The form it takes depends on temperature.'},
-  {id:52,domain:'ess',front:'What is transpiration?',back:'Plants release WATER VAPOR through tiny pores called stomata (mostly in leaves). Plants absorb water from the soil through roots, use some, and release the rest as vapor. It\'s like plants "sweating"! 🌿 → 💨 Transpiration is a significant part of the water cycle — forests create their own rainfall!'},
-  {id:53,domain:'ess',front:'What are the 3 types of rock and how does each form?',back:'1. IGNEOUS 🌋: cooled magma/lava. Examples: granite (slow cooling, big crystals), basalt, obsidian.\n2. SEDIMENTARY 🗂️: compressed layers of sediment. Fossils found here! Examples: sandstone, limestone, shale.\n3. METAMORPHIC 💎: changed by heat + pressure (no melting). Examples: marble (from limestone), quartzite (from sandstone).'},
-  {id:54,domain:'ess',front:'What is weathering and how is it different from erosion?',back:'WEATHERING: the BREAKING DOWN of rocks into smaller pieces IN PLACE. Types: mechanical (freeze-thaw, plant roots 🌱) and chemical (acid rain, oxidation = rusting).\nEROSION: the MOVING of those broken pieces by wind 💨, water 💧, ice, or gravity to a new location.\nDeposition = settling in a new spot.'},
-  {id:55,domain:'ess',front:'Where are fossils most commonly found and why?',back:'In SEDIMENTARY rock! Sedimentary rock forms in layers when sediment (mud, sand) gradually covers and buries organisms. Over millions of years, the organism\'s hard parts (bones, shells) get preserved as fossils. Igneous and metamorphic rocks involve too much heat/pressure to preserve fossils.'},
-  {id:56,domain:'ess',front:'What are Earth\'s 4 layers from outside to inside?',back:'1. CRUST 🏔️: thin, rocky outer layer (5-70 km). Where we live!\n2. MANTLE: thick, semi-solid rock (2,900 km). Largest layer by volume. Slow-moving convection drives plate movement.\n3. OUTER CORE: liquid iron & nickel. Creates Earth\'s magnetic field! 🧲\n4. INNER CORE: solid iron & nickel. Hottest place on Earth (~5,200°C). Solid because of extreme pressure.'},
-  {id:57,domain:'ess',front:'What creates Earth\'s magnetic field?',back:'Movement of liquid iron and nickel in the OUTER CORE. As this electrically-conducting liquid swirls around, it generates a powerful magnetic field that extends thousands of kilometers into space. This magnetic field acts like a shield, deflecting harmful solar radiation away from Earth. 🛡️'},
-  {id:58,domain:'ess',front:'What\'s the difference between weather and climate?',back:'WEATHER: current, short-term atmospheric conditions at a specific PLACE and TIME. "It\'s raining in Raleigh today." Changes hour to hour, day to day.\nCLIMATE: the long-term AVERAGE weather patterns for a region over many years (30+ years). "North Carolina has hot, humid summers." Climate is what you EXPECT; weather is what you GET.'},
-  {id:59,domain:'ess',front:'What factors affect weather?',back:'☀️ Temperature (heating of air and land)\n💧 Humidity (water vapor in air — high humidity → more precipitation potential)\n🌬️ Wind (movement of air from high pressure to low pressure areas)\n📊 Air pressure (high pressure = clear skies; low pressure = storms)\n🌊 Proximity to water (moderates temperature)'},
-  {id:60,domain:'ess',front:'What is the rock cycle?',back:'The ongoing process where rocks change from one type to another over millions of years:\n• Igneous → weathers → Sedimentary\n• Sedimentary + heat/pressure → Metamorphic\n• Metamorphic melts → magma → cools → Igneous\n• Any rock can melt and become magma again\nAll 3 rock types can become any other type — it\'s a cycle! 🔄'},
+  {id:49,domain:'ess',front:'What is evaporation?',back:'<strong>Evaporation</strong> is when the sun\'s heat turns liquid water into water vapor that rises into the atmosphere.'},
+  {id:50,domain:'ess',front:'What is condensation?',back:'<strong>Condensation</strong> is when water vapor cools and turns back into liquid droplets, forming clouds, fog, and dew.'},
+  {id:51,domain:'ess',front:'What is precipitation?',back:'<strong>Precipitation</strong> is water falling from clouds as rain, snow, sleet, or hail when droplets get too heavy to stay up.'},
+  {id:52,domain:'ess',front:'What is transpiration?',back:'<strong>Transpiration</strong> is when plants release water vapor through tiny leaf pores called stomata — forests can create their own rainfall.'},
+  {id:53,domain:'ess',front:'What are the 3 types of rock and how does each form?',back:'<strong>Igneous</strong> = cooled magma; <strong>Sedimentary</strong> = compressed layers (has fossils); <strong>Metamorphic</strong> = changed by heat + pressure.'},
+  {id:54,domain:'ess',front:'What is weathering and how is it different from erosion?',back:'<strong>Weathering</strong> breaks rocks apart in place; <strong>erosion</strong> moves those pieces by wind, water, or gravity to a new location.'},
+  {id:55,domain:'ess',front:'Where are fossils most commonly found and why?',back:'Fossils form in <strong>sedimentary rock</strong> because layers of sediment slowly bury and preserve organisms\' hard parts over millions of years.'},
+  {id:56,domain:'ess',front:'What are Earth\'s 4 layers from outside to inside?',back:'<strong>Crust → Mantle → Outer Core</strong> (liquid, creates magnetic field) → <strong>Inner Core</strong> (solid, extreme pressure).'},
+  {id:57,domain:'ess',front:'What creates Earth\'s magnetic field?',back:'Earth\'s <strong>magnetic field</strong> is created by swirling liquid iron/nickel in the outer core — it shields Earth from harmful solar radiation.'},
+  {id:58,domain:'ess',front:'What\'s the difference between weather and climate?',back:'<strong>Weather</strong> = current short-term conditions; <strong>climate</strong> = average patterns over 30+ years — climate is what you expect, weather is what you get.'},
+  {id:59,domain:'ess',front:'What factors affect weather?',back:'Weather is affected by <strong>temperature, humidity, wind, air pressure</strong>, and proximity to large bodies of water.'},
+  {id:60,domain:'ess',front:'What is the rock cycle?',back:'The <strong>rock cycle</strong>: igneous weathers to sedimentary → heat/pressure makes metamorphic → melting makes magma → cools back to igneous.'},
 ];
 
 // ─── STATE ───────────────────────────────────────────────────────
@@ -249,6 +251,10 @@ let cardRatings = {}; // id -> 'got'|'almost'|'again'
 let currentFilter = 'all';
 
 function buildDeck(filter) {
+  if (filter === 'daily10') {
+    const shuffled = [...CARDS].sort(()=>Math.random()-0.5);
+    return shuffled.slice(0, 10);
+  }
   if (filter === 'all') return [...CARDS];
   if (filter === 'ps') return CARDS.filter(c=>c.domain==='ps');
   if (filter === 'ls') return CARDS.filter(c=>c.domain==='ls');
@@ -293,7 +299,7 @@ function renderCard() {
   document.getElementById('cardFront').className = 'card-face card-front '+card.domain;
   document.getElementById('cardBack').className = 'card-face card-back '+card.domain;
   document.getElementById('cardQuestion').textContent = card.front;
-  document.getElementById('cardAnswer').textContent = card.back;
+  document.getElementById('cardAnswer').innerHTML = card.back;
   document.getElementById('counterBadge').textContent = `${current+1} / ${deck.length}`;
 
   // Hide confidence buttons until flipped
@@ -391,7 +397,8 @@ function saveCardRatings(){localStorage.setItem('evie_card_ratings',JSON.stringi
 
 // Init
 cardRatings = loadCardRatings();
-deck = buildDeck('all');
+currentFilter = 'daily10';
+deck = buildDeck('daily10');
 renderCard();
 updateProgress();
 </script>
