@@ -104,6 +104,35 @@ h1,h2,h3 { line-height: 1.2; }
 .stat-value { font-size: 1.4rem; font-weight: 700; color: var(--gold); }
 .stat-label { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
 
+/* Start Here section */
+.start-here {
+  margin: 16px 20px 0;
+  background: linear-gradient(135deg, rgba(251,191,36,0.07), rgba(251,146,60,0.04));
+  border: 1px solid rgba(251,191,36,0.28);
+  border-radius: 18px;
+  padding: 16px;
+}
+.start-here-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.start-here-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1px; color: var(--gold); font-weight: 700; margin-bottom: 2px; }
+.start-here-title { font-size: 1rem; font-weight: 800; }
+.eog-countdown { font-size: 0.72rem; color: var(--coral); font-weight: 700; background: rgba(248,113,113,0.1); padding: 4px 10px; border-radius: 10px; white-space: nowrap; }
+.start-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.start-card {
+  background: var(--card); border: 1px solid #2a4a6f; border-radius: 13px;
+  padding: 13px 10px; text-decoration: none; color: var(--text);
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  text-align: center; transition: transform 0.15s, box-shadow 0.15s;
+  position: relative; overflow: hidden; min-height: 100px; justify-content: center;
+}
+.start-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.35); }
+.start-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:13px 13px 0 0; background:linear-gradient(90deg,var(--gold),var(--orange)); }
+.start-card-icon { font-size: 1.9rem; }
+.start-card-name { font-size: 0.82rem; font-weight: 700; }
+.start-card-desc { font-size: 0.66rem; color: var(--muted); line-height: 1.3; }
+
 /* Tools grid */
 .section-header {
   padding: 20px 20px 12px;
@@ -267,7 +296,39 @@ h1,h2,h3 { line-height: 1.2; }
   </div>
 </div>
 
-<div class="section-header">Study Tools</div>
+<div class="start-here">
+  <div class="start-here-header">
+    <div>
+      <div class="start-here-label">🎯 Best moves right now</div>
+      <div class="start-here-title">Start Here</div>
+    </div>
+    <div class="eog-countdown" id="eogCountdown">EOG in 3 days!</div>
+  </div>
+  <div class="start-grid">
+    <a href="ninja.html" class="start-card">
+      <div class="start-card-icon">🥷</div>
+      <div class="start-card-name">Test Ninja Dojo</div>
+      <div class="start-card-desc">Learn HOW to tackle any question</div>
+    </a>
+    <a href="flashcards.html" class="start-card">
+      <div class="start-card-icon">🃏</div>
+      <div class="start-card-name">Daily 10 Cards</div>
+      <div class="start-card-desc">Quick warm-up, 10 cards at a time</div>
+    </a>
+    <a href="boss-battle.html" class="start-card">
+      <div class="start-card-icon">⚔️</div>
+      <div class="start-card-name">Boss Battle</div>
+      <div class="start-card-desc">Test all 3 domains in one game</div>
+    </a>
+    <a href="quiz.html" class="start-card">
+      <div class="start-card-icon">📝</div>
+      <div class="start-card-name">Quick Quiz</div>
+      <div class="start-card-desc">10 real EOG questions, ~5 min</div>
+    </a>
+  </div>
+</div>
+
+<div class="section-header">All Tools</div>
 
 <div class="tools-grid">
   <a href="flashcards.html" class="tool-card all">
@@ -512,6 +573,17 @@ function render() {
 }
 
 render();
+
+// EOG countdown
+(function() {
+  const eog = new Date('2026-05-22T08:00:00');
+  const now = new Date();
+  const days = Math.ceil((eog - now) / (1000 * 60 * 60 * 24));
+  const el = document.getElementById('eogCountdown');
+  if (days <= 0) el.textContent = 'EOG is TODAY! 🔥';
+  else if (days === 1) el.textContent = 'EOG tomorrow! 🔥';
+  else el.textContent = `EOG in ${days} days!`;
+})();
 </script>
 </body>
 </html>
