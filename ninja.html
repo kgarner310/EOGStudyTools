@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Ninja Dojo 🥷</title>
+<style>
+:root{--bg:#0f1923;--card:#1a2940;--card2:#1e3050;--green:#4ade80;--blue:#60a5fa;--coral:#f87171;--gold:#fbbf24;--purple:#a78bfa;--orange:#fb923c;--text:#e0f2fe;--muted:#94a3b8;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.top-bar{background:#0d1a2e;border-bottom:1px solid #2a4a6f;padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50;}
+a.back-btn{background:none;border:1px solid #2a4a6f;color:var(--muted);padding:6px 12px;border-radius:8px;font-size:0.85rem;text-decoration:none;display:inline-block;}
+.top-bar-title{flex:1;font-weight:700;font-size:1rem;}
+
+/* Hub */
+.hub{max-width:560px;margin:0 auto;padding:24px 20px;}
+.dojo-header{text-align:center;padding:20px 0 28px;}
+.dojo-header .big{font-size:3.5rem;}
+.dojo-header h1{font-size:1.6rem;font-weight:800;margin:8px 0 6px;}
+.dojo-header p{font-size:0.88rem;color:var(--muted);line-height:1.6;}
+.belt-list{display:flex;flex-direction:column;gap:10px;}
+.belt-card{background:var(--card);border:2px solid #2a4a6f;border-radius:14px;padding:15px 16px;display:flex;align-items:center;gap:14px;transition:all 0.15s;}
+.belt-card.clickable{cursor:pointer;}
+.belt-card.locked{opacity:0.4;cursor:not-allowed;}
+.belt-card.done{border-color:rgba(74,222,128,0.4);background:rgba(74,222,128,0.04);}
+.belt-card.clickable:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,0.3);}
+.belt-icon{width:46px;height:46px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+.belt-info{flex:1;min-width:0;}
+.belt-rank{font-size:0.62rem;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:2px;}
+.belt-name{font-size:0.93rem;font-weight:700;}
+.belt-desc{font-size:0.72rem;color:var(--muted);margin-top:2px;}
+.belt-status{font-size:1.2rem;flex-shrink:0;}
+.b0 .belt-icon{background:rgba(224,242,254,0.12);}.b0 .belt-rank{color:#c0d8f0;}
+.b1 .belt-icon{background:rgba(251,191,36,0.12);}.b1 .belt-rank{color:var(--gold);}
+.b2 .belt-icon{background:rgba(251,146,60,0.12);}.b2 .belt-rank{color:var(--orange);}
+.b3 .belt-icon{background:rgba(74,222,128,0.12);}.b3 .belt-rank{color:var(--green);}
+.b4 .belt-icon{background:rgba(96,165,250,0.12);}.b4 .belt-rank{color:var(--blue);}
+.b5 .belt-icon{background:rgba(167,139,250,0.12);}.b5 .belt-rank{color:var(--purple);}
+
+/* Screens */
+.screen{max-width:560px;margin:0 auto;padding:20px;display:none;}
+
+/* Strategy scroll */
+.strat-scroll{background:linear-gradient(135deg,#182540,#0e1f38);border:2px solid rgba(251,191,36,0.3);border-radius:16px;padding:22px;margin-bottom:18px;text-align:center;}
+.strat-icon{font-size:2.8rem;margin-bottom:10px;}
+.strat-belt-label{font-size:0.62rem;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px;}
+.strat-title{font-size:1.25rem;font-weight:800;margin-bottom:10px;}
+.strat-body{font-size:0.9rem;line-height:1.75;color:var(--text);}
+.strat-body strong{color:var(--gold);}
+
+.try-label{font-size:0.68rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700;margin-bottom:12px;}
+
+/* Item set */
+.item-box{background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.25);border-radius:12px;padding:14px;margin-bottom:14px;}
+.item-box-label{font-size:0.62rem;text-transform:uppercase;letter-spacing:1px;color:var(--blue);font-weight:700;margin-bottom:6px;}
+.item-box-text{font-size:0.83rem;line-height:1.65;color:var(--text);white-space:pre-line;}
+.item-box-hint{font-size:0.72rem;color:var(--blue);margin-top:8px;font-style:italic;}
+
+/* Hint bar */
+.hint-bar{background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.25);border-radius:10px;padding:9px 13px;font-size:0.8rem;color:var(--gold);margin-bottom:12px;}
+.elim-tip{font-size:0.75rem;color:var(--muted);text-align:center;margin-bottom:10px;}
+
+/* Question */
+.q-text{font-size:0.98rem;font-weight:600;line-height:1.65;margin-bottom:14px;}
+.q-text .pw{cursor:pointer;border-radius:4px;padding:1px 3px;transition:background 0.2s;}
+.q-text .pw:hover{background:rgba(251,191,36,0.2);}
+.q-text .pw.found{background:var(--gold);color:#0f1923;font-weight:800;}
+
+/* Options */
+.opts{display:flex;flex-direction:column;gap:8px;}
+.opt{background:var(--card2);border:2px solid #2a4a6f;border-radius:11px;padding:11px 13px;cursor:pointer;display:flex;gap:10px;align-items:center;transition:border-color 0.12s,background 0.12s;user-select:none;}
+.opt:hover:not(.eliminated):not([data-locked]){border-color:var(--blue);}
+.opt.eliminated{opacity:0.28;pointer-events:none;}
+.opt.eliminated .cross-btn{pointer-events:auto;}
+.opt.correct{border-color:var(--green)!important;background:rgba(74,222,128,0.1);}
+.opt.wrong{border-color:var(--coral)!important;background:rgba(248,113,113,0.1);}
+.opt.trap{border-color:var(--orange)!important;background:rgba(251,146,60,0.06);}
+.opt[data-locked]{pointer-events:none;opacity:0.5;}
+.opt-letter{width:26px;height:26px;min-width:26px;border-radius:50%;background:#2a4a6f;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:700;flex-shrink:0;}
+.opt.correct .opt-letter{background:var(--green);color:#0f1923;}
+.opt.wrong .opt-letter{background:var(--coral);color:#fff;}
+.opt.trap .opt-letter{background:var(--orange);color:#fff;}
+.opt-text{font-size:0.9rem;line-height:1.4;flex:1;}
+.cross-btn{background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.28);color:var(--coral);border-radius:6px;padding:3px 8px;font-size:0.72rem;cursor:pointer;flex-shrink:0;transition:background 0.12s;}
+.cross-btn:hover{background:rgba(248,113,113,0.25);}
+.cross-btn.restore{background:rgba(74,222,128,0.12);border-color:rgba(74,222,128,0.28);color:var(--green);}
+
+/* Feedback */
+.feedback{border-radius:12px;padding:13px 15px;margin-top:13px;}
+.feedback.win{background:rgba(74,222,128,0.07);border:1px solid rgba(74,222,128,0.25);}
+.feedback.lose{background:rgba(248,113,113,0.05);border:1px solid rgba(248,113,113,0.2);}
+.feedback .fb-head{font-size:0.68rem;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:5px;}
+.feedback.win .fb-head{color:var(--green);}
+.feedback.lose .fb-head{color:var(--coral);}
+.feedback .fb-body{font-size:0.87rem;line-height:1.55;}
+.plug-readback{margin-top:10px;font-size:0.9rem;line-height:1.7;background:rgba(96,165,250,0.07);padding:10px 13px;border-radius:9px;border:1px solid rgba(96,165,250,0.2);}
+.plug-readback .ans{color:var(--green);font-weight:700;background:rgba(74,222,128,0.12);padding:1px 6px;border-radius:4px;}
+
+/* Belt award */
+.award-screen{text-align:center;padding:30px 0 10px;}
+.award-emoji{font-size:5rem;animation:pop 0.4s ease;display:block;}
+.award-rank{font-size:1.4rem;font-weight:800;margin:12px 0 5px;}
+.award-move{font-size:0.85rem;color:var(--muted);margin-bottom:22px;}
+@keyframes pop{0%{transform:scale(0.4);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+
+/* Challenge progress */
+.ch-progress{display:flex;gap:6px;margin-bottom:18px;}
+.ch-dot{flex:1;height:8px;border-radius:4px;background:#2a4a6f;transition:background 0.3s;}
+.ch-dot.done{background:var(--green);}
+.ch-dot.curr{background:var(--gold);}
+
+/* Results */
+.results-screen{max-width:560px;margin:0 auto;padding:40px 20px;text-align:center;display:none;}
+.res-emoji{font-size:5rem;animation:pop 0.4s ease;display:block;margin-bottom:12px;}
+.res-title{font-size:1.55rem;font-weight:800;margin-bottom:6px;}
+.res-sub{color:var(--muted);font-size:0.88rem;margin-bottom:18px;line-height:1.5;}
+.res-score{font-size:1.1rem;font-weight:700;color:var(--gold);margin-bottom:24px;}
+
+/* XP pop */
+.xp-pop{position:fixed;top:68px;right:18px;background:var(--gold);color:#1a1100;font-weight:700;font-size:0.88rem;padding:8px 16px;border-radius:20px;opacity:0;transform:translateY(-8px);transition:all 0.3s;z-index:200;pointer-events:none;}
+.xp-pop.show{opacity:1;transform:translateY(0);}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:12px 24px;border-radius:12px;border:none;font-size:0.93rem;font-weight:700;cursor:pointer;transition:transform 0.1s,box-shadow 0.1s;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,0.25);}
+.btn-primary{background:linear-gradient(135deg,var(--green),var(--blue));color:#0f1923;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--orange));color:#0f1923;}
+.btn-secondary{background:var(--card);color:var(--text);border:1px solid #2a4a6f;}
+.w100{width:100%;margin-bottom:8px;}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a href="index.html" class="back-btn">🏠</a>
+  <div class="top-bar-title" id="topTitle">🥷 Test Ninja Dojo</div>
+</div>
+
+<!-- HUB -->
+<div id="hubScreen" class="hub">
+  <div class="dojo-header">
+    <div class="big">🥷</div>
+    <h1>Test Ninja Dojo</h1>
+    <p>Master 6 secret moves to crush any test question.<br>Train. Earn belts. Become a Test Ninja.</p>
+  </div>
+  <div class="belt-list" id="beltList"></div>
+</div>
+
+<!-- LESSON -->
+<div id="lessonScreen" class="screen">
+  <div class="strat-scroll" id="stratScroll"></div>
+  <div id="tryIt">
+    <div class="try-label">⚔️ USE YOUR NEW MOVE — TRY IT:</div>
+    <div id="itemBox" class="item-box" style="display:none">
+      <div class="item-box-label">📋 Reference Material — Read this first!</div>
+      <div class="item-box-text" id="itemBoxText"></div>
+      <div class="item-box-hint">👆 The answer is hiding in there!</div>
+    </div>
+    <div class="hint-bar" id="hintBar" style="display:none"></div>
+    <div class="elim-tip" id="elimTip" style="display:none">Tap ✂️ to cross out a wrong answer · Tap the option to pick your answer</div>
+    <div class="q-text" id="qText"></div>
+    <div class="opts" id="optsDiv"></div>
+    <div id="feedbackDiv" style="display:none"></div>
+    <div id="nextWrap" style="display:none;margin-top:14px;">
+      <button class="btn btn-gold w100" id="nextBtn" onclick="advanceLesson()">Claim Your Belt! 🏅</button>
+    </div>
+  </div>
+  <div class="award-screen" id="awardScreen" style="display:none">
+    <span class="award-emoji" id="awardEmoji"></span>
+    <div class="award-rank" id="awardRank"></div>
+    <div class="award-move" id="awardMove"></div>
+    <button class="btn btn-primary w100" id="awardNextBtn" onclick="finishLesson()">Next Belt →</button>
+  </div>
+</div>
+
+<!-- CHALLENGE -->
+<div id="challengeScreen" class="screen">
+  <div style="text-align:center;margin-bottom:18px;">
+    <div style="font-size:2rem;">⚔️🥷</div>
+    <div style="font-weight:800;font-size:1.15rem;margin:4px 0;">Black Belt Challenge</div>
+    <div style="font-size:0.8rem;color:var(--muted);">5 questions — use every move you know</div>
+  </div>
+  <div class="ch-progress" id="chProgress"></div>
+  <div style="font-size:0.73rem;color:var(--muted);margin-bottom:6px;" id="cqNum">Question 1 of 5</div>
+  <div class="q-text" id="cqText"></div>
+  <div class="elim-tip">Tap ✂️ to cross out · Tap the option to lock in your answer</div>
+  <div class="opts" id="cOptsDiv"></div>
+  <div id="cFeedbackDiv" style="display:none"></div>
+  <div id="cNextWrap" style="display:none;margin-top:14px;">
+    <button class="btn btn-gold w100" onclick="nextChallenge()">Next →</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="results-screen" id="resultsScreen">
+  <span class="res-emoji" id="resEmoji">🥷</span>
+  <div class="res-title" id="resTitle"></div>
+  <div class="res-sub" id="resSub"></div>
+  <div class="res-score" id="resScore"></div>
+  <button class="btn btn-primary w100" onclick="replayChallenge()">Try Again 🔄</button>
+  <button class="btn btn-secondary w100" style="margin-top:8px;" onclick="showHub()">Back to Dojo 🏠</button>
+</div>
+
+<div class="xp-pop" id="xpPop"></div>
+
+<script>
+const SAVE_KEY='evie_eog_progress';
+const NINJA_KEY='evie_ninja_belts';
+function loadProgress(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));const d={xp:0,level:1,badges:[],domainCorrect:{ps:0,ls:0,ess:0},domainTotal:{ps:0,ls:0,ess:0},battingStats:{atBats:0,hits:0,homeRuns:0},flashcardsMastered:0,lastVisit:null,dailyStreak:0,bossesDefeated:[],scratchPacks:0};return s?Object.assign(d,s):d;}catch{return{xp:0,level:1,badges:[],domainCorrect:{ps:0,ls:0,ess:0},domainTotal:{ps:0,ls:0,ess:0},battingStats:{atBats:0,hits:0,homeRuns:0},flashcardsMastered:0,lastVisit:null,dailyStreak:0,bossesDefeated:[],scratchPacks:0};}}
+function saveProgress(p){localStorage.setItem(SAVE_KEY,JSON.stringify(p));}
+function loadBelts(){try{return JSON.parse(localStorage.getItem(NINJA_KEY))||[];}catch{return[];}}
+function saveBelts(b){localStorage.setItem(NINJA_KEY,JSON.stringify(b));}
+
+const BELTS=[
+  {id:'b0',rank:'White Belt',name:'Elimination Strike',desc:'Cross out wrong answers, then pick from what\'s left',icon:'✂️',color:'#c0d8f0',type:'eliminate',
+   sIcon:'🗡️',sTitle:'The Elimination Strike',sBody:'Even when you\'re unsure, you probably know some answers are <strong>definitely wrong</strong>. Cross those out first — then pick from what\'s left. Fewer choices = much better odds!',
+   q:'Which of the following is a NON-CONTACT force?',
+   opts:['Friction between two rough surfaces','Kicking a soccer ball','Gravity pulling an apple toward Earth','Pushing a desk across the room'],
+   correct:2,
+   exp:'<strong>Gravity</strong> acts across a distance — no touching needed! Friction, kicking, and pushing all require contact between objects. Eliminate those 3 and gravity is the only one left.'},
+
+  {id:'b1',rank:'Yellow Belt',name:'Power Word Scan',desc:'Find the hidden word that flips the whole question',icon:'🔍',color:'#fbbf24',type:'powerword',
+   sIcon:'⚡',sTitle:'The Power Word Scan',sBody:'Words like <strong>NOT</strong>, <strong>EXCEPT</strong>, <strong>BEST</strong>, and <strong>MOST</strong> secretly change the entire question. Miss them and you pick the wrong answer even when you know the material cold. Always tap the power word FIRST!',
+   q:'Which of the following is NOT a sign of a chemical change?',
+   powerWord:'NOT',
+   opts:['A new smell is produced','The object changes shape only','Bubbles form during the reaction','A different color appears'],
+   correct:1,
+   exp:'"Shape change only" is a <strong>physical change</strong> — no new substance formed. The others (new smell, bubbles, new color) are all chemical change clues. The word NOT made this question ask for the odd one out!'},
+
+  {id:'b2',rank:'Orange Belt',name:'Trap Dodge',desc:'Spot the sneaky almost-right decoy answer',icon:'🪤',color:'#fb923c',type:'trap',
+   sIcon:'🎯',sTitle:'The Trap Dodge',sBody:'Test makers put in answers that <strong>sound right but aren\'t</strong>. Usually two choices look very similar — one is correct, one is the trap. Slow down, read both closely, and spot the exact difference.',
+   q:'What is the main job of the cell membrane?',
+   opts:['Store water and waste for the cell','Control what enters and exits the cell','Produce energy (ATP) for the cell','Contain DNA and direct all cell activities'],
+   correct:1,trapIdx:3,
+   trapExplain:'Answer D describes the <strong>nucleus</strong>, not the membrane — a classic organelle swap trap!',
+   exp:'The <strong>cell membrane</strong> is the cell\'s gatekeeper — it controls what goes in and out. Answer D was the trap: it described the nucleus instead.'},
+
+  {id:'b3',rank:'Green Belt',name:'Plug-Back Proof',desc:'Read the question with your answer filled in to double-check',icon:'🔌',color:'#4ade80',type:'plugback',
+   sIcon:'✅',sTitle:'The Plug-Back Proof',sBody:'After you choose an answer, <strong>plug it back into the question</strong> and read the whole sentence. Does it make sense? Sound true? If yes — lock it in! This catches careless mistakes before they cost you points.',
+   q:'The force that opposes motion between two surfaces in contact is called _____.',
+   plugTemplate:'The force that opposes motion between two surfaces in contact is called [ANSWER].',
+   opts:['Gravity','Magnetism','Net force','Friction'],
+   correct:3,
+   exp:'Read it back: "The force that opposes motion between two surfaces in contact is called <strong>friction</strong>." That\'s a true, complete sentence!'},
+
+  {id:'b4',rank:'Blue Belt',name:'Passage Power',desc:'The answer is always hiding in the reference material',icon:'📋',color:'#60a5fa',type:'itemset',
+   sIcon:'🔎',sTitle:'Passage Power',sBody:'When a question gives you a <strong>passage, table, or diagram</strong>, the answer is IN there — guaranteed. Don\'t guess from memory. Go back, find the evidence, and let the passage hand you the answer.',
+   itemText:'A scientist tested four soil samples from different locations:\n\n• Sample A: dark brown, holds water well, good nutrients\n• Sample B: light tan, drains very fast, very low nutrients\n• Sample C: red-orange, dense, moderate nutrients\n• Sample D: black, spongy, highest nutrients, holds moisture best',
+   q:'Based on the data, which soil sample would MOST LIKELY support the healthiest plant growth?',
+   opts:['Sample B — drains fast so roots won\'t rot','Sample C — dense structure anchors roots','Sample A — dark color, holds water, good nutrients','Sample D — highest nutrients and holds moisture best'],
+   correct:3,
+   exp:'The passage tells you exactly: Sample D has <strong>highest nutrients AND holds moisture best</strong>. You didn\'t need to memorize anything — the evidence was right there!'},
+
+  {id:'b5',rank:'Black Belt',name:'Black Belt Challenge',desc:'5 real questions — use all 5 moves at once',icon:'🥷',color:'#a78bfa',type:'challenge',
+   sIcon:'🥷',sTitle:'The Final Test',sBody:'You\'ve trained hard. Now it\'s time. <strong>5 real EOG-style questions</strong>, no coaching. Use any move — eliminate wrong answers, find the power word, dodge the trap, plug back in. Go prove you\'re a Test Ninja.'}
+];
+
+const CHALLENGE_QS=[
+  {q:'A student dissolves salt in water, then heats it until all the water evaporates. What does this demonstrate?',
+   opts:['Salt forms a new chemical compound with water','Evaporation physically separates a solution','Salt is destroyed when heated','Saltwater boils at a lower temperature than fresh water'],
+   correct:1,exp:'Evaporation is a <strong>physical process</strong> — no new substance forms. The salt is still salt; water is still water. They\'re just separated.'},
+  {q:'Which of the following is NOT an example of a biotic factor in a pond ecosystem?',
+   opts:['Algae growing on rocks','A frog living near the water','Sunlight filtering through the water','Fish eating smaller fish'],
+   correct:2,exp:'<strong>Sunlight</strong> is abiotic — it\'s non-living. Algae, frogs, and fish are all living (biotic) parts of the ecosystem.'},
+  {q:'Two equal and opposite forces act on a book sitting still on a desk. What is the net force on the book?',
+   opts:['Equal to the weight of the book','Double the weight of the book','Zero','Upward, because the desk pushes harder'],
+   correct:2,exp:'Equal and opposite forces cancel out — <strong>net force = 0</strong>. Balanced forces mean no change in motion. The book stays still.'},
+  {q:'Which process in the water cycle is driven MOST directly by energy from the sun?',
+   opts:['Condensation forming clouds','Precipitation falling as rain','Transpiration in forest trees','Evaporation from the ocean surface'],
+   correct:3,exp:'<strong>Evaporation</strong> requires heat from the sun to turn liquid water into vapor. It\'s the sun-powered engine that drives the entire water cycle.'},
+  {q:'Fossils of ocean creatures are found near the top of a mountain range. What does this MOST LIKELY indicate?',
+   opts:['Ocean creatures were once able to travel on land','That area was once covered by water','Scientists placed the fossils there for study','Ocean creatures are found everywhere on Earth'],
+   correct:1,exp:'Fossils of ocean organisms in mountain rock tell us that <strong>Earth\'s surface has changed over time</strong> — that area was once underwater.'}
+];
+
+// State
+let completed=loadBelts();
+let beltIdx=0;
+let answered=false;
+let pwFound=false;
+let chIdx=0;
+let chScore=0;
+let chAnswered=false;
+
+// ── Hub ──────────────────────────────────────────────────────────
+function showHub(){
+  document.getElementById('hubScreen').style.display='block';
+  document.getElementById('lessonScreen').style.display='none';
+  document.getElementById('challengeScreen').style.display='none';
+  document.getElementById('resultsScreen').style.display='none';
+  document.getElementById('topTitle').textContent='🥷 Test Ninja Dojo';
+  renderHub();
+}
+
+function renderHub(){
+  document.getElementById('beltList').innerHTML=BELTS.map((b,i)=>{
+    const done=completed.includes(b.id);
+    const unlocked=i===0||completed.includes(BELTS[i-1].id);
+    return `<div class="belt-card b${i} ${done?'done':''} ${unlocked?'clickable':'locked'}" ${unlocked?`onclick="startBelt(${i})"`:''}>
+      <div class="belt-icon">${b.icon}</div>
+      <div class="belt-info">
+        <div class="belt-rank">${b.rank}</div>
+        <div class="belt-name">${b.name}</div>
+        <div class="belt-desc">${b.desc}</div>
+      </div>
+      <div class="belt-status">${done?'✅':unlocked?'▶️':'🔒'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Lesson ───────────────────────────────────────────────────────
+function startBelt(idx){
+  beltIdx=idx;
+  const b=BELTS[idx];
+  if(b.type==='challenge'){startChallenge();return;}
+  answered=false;pwFound=false;
+  document.getElementById('hubScreen').style.display='none';
+  document.getElementById('lessonScreen').style.display='block';
+  document.getElementById('challengeScreen').style.display='none';
+  document.getElementById('resultsScreen').style.display='none';
+  document.getElementById('tryIt').style.display='block';
+  document.getElementById('awardScreen').style.display='none';
+  document.getElementById('feedbackDiv').style.display='none';
+  document.getElementById('nextWrap').style.display='none';
+  document.getElementById('hintBar').style.display='none';
+  document.getElementById('elimTip').style.display='none';
+  document.getElementById('itemBox').style.display='none';
+  document.getElementById('topTitle').textContent=b.rank+' Training';
+
+  document.getElementById('stratScroll').innerHTML=
+    `<div class="strat-icon">${b.sIcon}</div>
+     <div class="strat-belt-label" style="color:${b.color}">${b.rank} — The Move</div>
+     <div class="strat-title">${b.sTitle}</div>
+     <div class="strat-body">${b.sBody}</div>`;
+
+  if(b.type==='itemset'){
+    document.getElementById('itemBox').style.display='block';
+    document.getElementById('itemBoxText').textContent=b.itemText;
+  }
+  if(b.type==='powerword'){
+    document.getElementById('hintBar').style.display='block';
+    document.getElementById('hintBar').textContent='👆 Find and tap the POWER WORD in the question below first!';
+  }
+  if(b.type==='eliminate'){
+    document.getElementById('elimTip').style.display='block';
+  }
+
+  if(b.type==='powerword'){
+    const html=b.q.split(' ').map(w=>{
+      const clean=w.replace(/\W/g,'');
+      return clean===b.powerWord?`<span class="pw" onclick="tapPowerWord(this)">${w}</span>`:w;
+    }).join(' ');
+    document.getElementById('qText').innerHTML=html;
+  } else {
+    document.getElementById('qText').textContent=b.q;
+  }
+  renderOpts();
+}
+
+function renderOpts(){
+  const b=BELTS[beltIdx];
+  const letters=['A','B','C','D'];
+  const isPW=b.type==='powerword';
+  document.getElementById('optsDiv').innerHTML=b.opts.map((opt,i)=>{
+    const locked=isPW&&!pwFound?'data-locked="1"':'';
+    const crossBtn=b.type==='eliminate'
+      ?`<button class="cross-btn" id="cb${i}" onclick="event.stopPropagation();crossLesson(${i})">✂️</button>`:'';
+    const click=isPW&&!pwFound?`onclick="tapPWPrompt()"`:`onclick="pickAnswer(${i})"`;
+    return `<div class="opt" id="lo${i}" ${locked} ${click}>
+      <div class="opt-letter">${letters[i]}</div>
+      <div class="opt-text">${opt}</div>
+      ${crossBtn}
+    </div>`;
+  }).join('');
+}
+
+function tapPWPrompt(){
+  document.getElementById('hintBar').style.display='block';
+  document.getElementById('hintBar').textContent='⚠️ Tap the power word in the question above first!';
+}
+
+function tapPowerWord(el){
+  if(pwFound)return;
+  pwFound=true;
+  el.classList.add('found');
+  document.getElementById('hintBar').textContent='🔥 Found it! Now answer carefully — what does "'+BELTS[beltIdx].powerWord+'" change here?';
+  document.querySelectorAll('#optsDiv .opt').forEach((o,i)=>{
+    o.removeAttribute('data-locked');
+    o.setAttribute('onclick','pickAnswer('+i+')');
+  });
+}
+
+function crossLesson(i){
+  if(answered)return;
+  const el=document.getElementById('lo'+i);
+  const btn=document.getElementById('cb'+i);
+  if(el.classList.contains('eliminated')){
+    el.classList.remove('eliminated');
+    el.style.pointerEvents='';
+    btn.textContent='✂️';btn.classList.remove('restore');
+  } else {
+    const nonElim=document.querySelectorAll('#optsDiv .opt:not(.eliminated)').length;
+    if(nonElim<=2)return;
+    el.classList.add('eliminated');
+    el.style.pointerEvents='none';
+    btn.style.pointerEvents='auto';
+    btn.textContent='↩️';btn.classList.add('restore');
+  }
+}
+
+function pickAnswer(i){
+  if(answered)return;
+  const b=BELTS[beltIdx];
+  if(b.type==='powerword'&&!pwFound){tapPWPrompt();return;}
+  answered=true;
+  document.querySelectorAll('#optsDiv .opt').forEach(o=>o.style.pointerEvents='none');
+  const win=i===b.correct;
+  document.getElementById('lo'+b.correct).classList.add('correct');
+  if(!win)document.getElementById('lo'+i).classList.add('wrong');
+  if(b.type==='trap'&&b.trapIdx!=null)document.getElementById('lo'+b.trapIdx).classList.add('trap');
+
+  let bodyHtml=b.exp;
+  if(b.type==='trap'&&b.trapIdx!=null)
+    bodyHtml+=`<br><br><em style="color:var(--orange)">🪤 Trap was answer ${['A','B','C','D'][b.trapIdx]}: ${b.trapExplain}</em>`;
+
+  let extra='';
+  if(b.type==='plugback'){
+    const filled=b.plugTemplate.replace('[ANSWER]','<span class="ans">'+b.opts[b.correct]+'</span>');
+    extra=`<div class="plug-readback">🔌 Read it back: ${filled}</div>`;
+  }
+
+  document.getElementById('feedbackDiv').style.display='block';
+  document.getElementById('feedbackDiv').innerHTML=`<div class="feedback ${win?'win':'lose'}">
+    <div class="fb-head">${win?'✅ Ninja Move Successful!':'❌ Not quite — here\'s the move:'}</div>
+    <div class="fb-body">${bodyHtml}</div>${extra}
+  </div>`;
+
+  document.getElementById('hintBar').style.display='none';
+  document.getElementById('elimTip').style.display='none';
+  document.getElementById('nextWrap').style.display='block';
+  document.getElementById('nextBtn').textContent=win?'Claim Your Belt! 🏅':'Got it — next! →';
+}
+
+function advanceLesson(){
+  const b=BELTS[beltIdx];
+  if(!completed.includes(b.id)){
+    completed.push(b.id);saveBelts(completed);
+    const p=loadProgress();p.xp=(p.xp||0)+15;saveProgress(p);
+    showXP('+15 XP!');
+  }
+  document.getElementById('tryIt').style.display='none';
+  document.getElementById('awardScreen').style.display='block';
+  const bColors=['#c0d8f0','#fbbf24','#fb923c','#4ade80','#60a5fa','#a78bfa'];
+  document.getElementById('awardEmoji').textContent=b.icon;
+  document.getElementById('awardRank').innerHTML=`<span style="color:${bColors[beltIdx]}">${b.rank} Earned!</span>`;
+  document.getElementById('awardMove').textContent='Move unlocked: '+b.name;
+  const next=beltIdx+1;
+  document.getElementById('awardNextBtn').textContent=next<BELTS.length?`Next: ${BELTS[next].rank} →`:'Back to Dojo 🏠';
+}
+
+function finishLesson(){
+  const next=beltIdx+1;
+  if(next<BELTS.length)startBelt(next);else showHub();
+}
+
+// ── Challenge ────────────────────────────────────────────────────
+function startChallenge(){
+  chIdx=0;chScore=0;
+  document.getElementById('hubScreen').style.display='none';
+  document.getElementById('lessonScreen').style.display='none';
+  document.getElementById('challengeScreen').style.display='block';
+  document.getElementById('resultsScreen').style.display='none';
+  document.getElementById('topTitle').textContent='⚔️ Black Belt Challenge';
+  showChQ();
+}
+
+function showChQ(){
+  chAnswered=false;
+  const q=CHALLENGE_QS[chIdx];
+  renderChProgress();
+  document.getElementById('cqNum').textContent=`Question ${chIdx+1} of ${CHALLENGE_QS.length}`;
+  document.getElementById('cqText').textContent=q.q;
+  document.getElementById('cFeedbackDiv').style.display='none';
+  document.getElementById('cNextWrap').style.display='none';
+  const letters=['A','B','C','D'];
+  document.getElementById('cOptsDiv').innerHTML=q.opts.map((opt,i)=>
+    `<div class="opt" id="co${i}" onclick="pickCh(${i})">
+      <div class="opt-letter">${letters[i]}</div>
+      <div class="opt-text">${opt}</div>
+      <button class="cross-btn" id="ccb${i}" onclick="event.stopPropagation();crossCh(${i})">✂️</button>
+    </div>`
+  ).join('');
+}
+
+function crossCh(i){
+  if(chAnswered)return;
+  const el=document.getElementById('co'+i);
+  const btn=document.getElementById('ccb'+i);
+  if(el.classList.contains('eliminated')){
+    el.classList.remove('eliminated');el.style.pointerEvents='';
+    btn.textContent='✂️';btn.classList.remove('restore');
+  } else {
+    const nonElim=document.querySelectorAll('#cOptsDiv .opt:not(.eliminated)').length;
+    if(nonElim<=2)return;
+    el.classList.add('eliminated');el.style.pointerEvents='none';
+    btn.style.pointerEvents='auto';btn.textContent='↩️';btn.classList.add('restore');
+  }
+}
+
+function pickCh(i){
+  if(chAnswered)return;
+  const el=document.getElementById('co'+i);
+  if(el&&el.classList.contains('eliminated'))return;
+  chAnswered=true;
+  document.querySelectorAll('#cOptsDiv .opt').forEach(o=>o.style.pointerEvents='none');
+  const q=CHALLENGE_QS[chIdx];
+  const win=i===q.correct;
+  if(win)chScore++;
+  document.getElementById('co'+q.correct).classList.add('correct');
+  if(!win)document.getElementById('co'+i).classList.add('wrong');
+  document.getElementById('cFeedbackDiv').style.display='block';
+  document.getElementById('cFeedbackDiv').innerHTML=`<div class="feedback ${win?'win':'lose'}">
+    <div class="fb-head">${win?'✅ Ninja move!':'❌ Not quite:'}</div>
+    <div class="fb-body">${q.exp}</div>
+  </div>`;
+  document.getElementById('cNextWrap').style.display='block';
+  renderChProgress();
+}
+
+function renderChProgress(){
+  document.getElementById('chProgress').innerHTML=CHALLENGE_QS.map((_,i)=>
+    `<div class="ch-dot ${i<chIdx?'done':i===chIdx?'curr':''}"></div>`
+  ).join('');
+}
+
+function nextChallenge(){
+  chIdx++;
+  if(chIdx>=CHALLENGE_QS.length)showChResults();else showChQ();
+}
+
+function showChResults(){
+  document.getElementById('challengeScreen').style.display='none';
+  document.getElementById('resultsScreen').style.display='block';
+  document.getElementById('topTitle').textContent='🥷 Test Ninja Dojo';
+  const win=chScore>=4;
+  document.getElementById('resEmoji').textContent=win?'🥷':'💪';
+  document.getElementById('resTitle').textContent=win?'BLACK BELT EARNED! 🥷':'Almost There!';
+  document.getElementById('resSub').textContent=win
+    ?'You used your ninja moves perfectly. The EOG doesn\'t stand a chance!'
+    :'You\'ve got the moves — keep training. Every rep makes you sharper!';
+  document.getElementById('resScore').textContent=`${chScore} / ${CHALLENGE_QS.length} correct`;
+  if(win&&!completed.includes('b5')){
+    completed.push('b5');saveBelts(completed);
+    const p=loadProgress();p.xp=(p.xp||0)+25;
+    if(!p.badges.includes('test_ninja'))p.badges.push('test_ninja');
+    saveProgress(p);showXP('+25 XP! 🥷');
+  }
+}
+
+function replayChallenge(){startChallenge();}
+
+function showXP(msg){
+  const el=document.getElementById('xpPop');
+  el.textContent=msg;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),1800);
+}
+
+showHub();
+</script>
+</body>
+</html>
