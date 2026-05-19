@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Softball Batting Game 🥎</title>
+<style>
+:root {
+  --bg: #0f1923; --card: #1a2940; --card2: #1e3050;
+  --green: #4ade80; --blue: #60a5fa; --coral: #f87171;
+  --gold: #fbbf24; --purple: #a78bfa; --orange: #fb923c;
+  --text: #e0f2fe; --muted: #94a3b8; --r: 16px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+.header {
+  background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #0f1923 100%);
+  padding: 16px 20px 12px;
+  border-bottom: 2px solid #1e3a5f;
+}
+.header-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.header-top h1 { font-size: 1.4rem; flex: 1; }
+.back-btn { color: var(--muted); font-size: 0.85rem; text-decoration: none; font-weight: 600; }
+.scoreboard {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+}
+.stat-box {
+  background: rgba(255,255,255,.05); border-radius: 10px;
+  padding: 8px 6px; text-align: center;
+}
+.stat-val { font-size: 1.3rem; font-weight: 800; color: var(--gold); }
+.stat-lbl { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+
+.field-wrap { padding: 12px 16px 6px; display: flex; justify-content: center; }
+.field-svg { max-width: 320px; width: 100%; }
+
+.q-section { padding: 0 16px 16px; }
+.at-bat-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; text-align: center; }
+.q-card {
+  background: var(--card2); border-radius: var(--r);
+  padding: 16px; margin-bottom: 10px;
+  border: 1px solid #2a4a6f;
+}
+.diff-badge {
+  display: inline-block; font-size: 0.68rem; font-weight: 700;
+  padding: 2px 8px; border-radius: 10px; margin-bottom: 8px;
+  text-transform: uppercase; letter-spacing: .5px;
+}
+.diff-single { background: rgba(74,222,128,.2); color: var(--green); }
+.diff-double { background: rgba(96,165,250,.2); color: var(--blue); }
+.diff-triple { background: rgba(251,191,36,.2); color: var(--gold); }
+.diff-homer { background: rgba(248,113,113,.2); color: var(--coral); }
+.q-txt { font-size: 1rem; line-height: 1.5; font-weight: 600; }
+
+.answers { display: flex; flex-direction: column; gap: 8px; }
+.ans-btn {
+  width: 100%; padding: 13px 14px;
+  background: var(--card); border: 2px solid #2a4a6f;
+  border-radius: 12px; color: var(--text);
+  font-size: 0.92rem; font-weight: 500;
+  text-align: left; cursor: pointer; transition: all 0.18s;
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.ans-btn:disabled { cursor: default; }
+.ans-btn.correct { background: rgba(74,222,128,.2); border-color: var(--green); }
+.ans-btn.wrong { background: rgba(248,113,113,.2); border-color: var(--coral); }
+.ans-letter {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: #2a4a6f; display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+}
+.ans-btn.correct .ans-letter { background: var(--green); color: #1a1a1a; }
+.ans-btn.wrong .ans-letter { background: var(--coral); color: #1a1a1a; }
+
+.fb-strip {
+  margin: 10px 0; padding: 12px 14px; border-radius: 12px;
+  font-size: 0.88rem; line-height: 1.45; display: none;
+}
+.fb-strip.hit-fb { background: rgba(74,222,128,.12); border: 1px solid var(--green); }
+.fb-strip.out-fb { background: rgba(248,113,113,.12); border: 1px solid var(--coral); }
+.fb-title { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+.next-pitch-btn {
+  width: 100%; padding: 14px; margin-top: 8px;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  border: none; border-radius: 12px; color: white;
+  font-size: 1rem; font-weight: 700; cursor: pointer; display: none;
+}
+
+/* HIT animation overlay */
+.hit-splash {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  pointer-events: none; opacity: 0;
+  transition: opacity 0.2s;
+}
+.hit-splash.show { opacity: 1; }
+.hit-splash.homer { background: rgba(248,113,113,.15); }
+.hit-splash.triple { background: rgba(251,191,36,.1); }
+.hit-splash.double { background: rgba(96,165,250,.1); }
+.hit-splash.single { background: rgba(74,222,128,.08); }
+.hit-text {
+  font-size: 3.5rem; font-weight: 900; text-shadow: 0 0 30px currentColor;
+  animation: pop 0.4s ease; text-align: center;
+}
+@keyframes pop { 0%{transform:scale(.5)} 70%{transform:scale(1.15)} 100%{transform:scale(1)} }
+.homer .hit-text { color: var(--coral); }
+.triple .hit-text { color: var(--gold); }
+.double .hit-text { color: var(--blue); }
+.single .hit-text { color: var(--green); }
+
+/* Game Over */
+.gameover {
+  position: fixed; inset: 0; z-index: 300;
+  background: linear-gradient(180deg, #071427 0%, #0f1923 100%);
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 30px 24px; text-align: center;
+  display: none;
+}
+.go-emoji { font-size: 4.5rem; margin-bottom: 12px; }
+.go-title { font-size: 2rem; font-weight: 800; color: var(--gold); margin-bottom: 8px; }
+.go-avg { font-size: 3rem; font-weight: 900; color: var(--green); margin: 12px 0; }
+.go-avg-lbl { font-size: 0.85rem; color: var(--muted); }
+.go-stats {
+  background: var(--card); border-radius: var(--r);
+  padding: 16px 20px; margin: 16px 0; width: 100%; max-width: 320px;
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center;
+}
+.go-stat-val { font-size: 1.4rem; font-weight: 800; color: var(--gold); }
+.go-stat-lbl { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; }
+.xp-pill {
+  background: rgba(251,191,36,.15); border: 2px solid var(--gold);
+  border-radius: 14px; padding: 8px 20px;
+  font-size: 1.3rem; font-weight: 800; color: var(--gold); margin-bottom: 20px;
+}
+.go-btns { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 300px; }
+.go-btns button, .go-btns a {
+  padding: 15px; border-radius: 12px; font-size: 1rem;
+  font-weight: 700; cursor: pointer; border: none; text-decoration: none; display: block; text-align: center;
+}
+.btn-play-again { background: linear-gradient(135deg, var(--green), var(--blue)); color: #1a1a1a; }
+.btn-hub { background: var(--card2); color: var(--text); }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-top">
+    <h1>🥎 Batting Practice</h1>
+    <a href="index.html" class="back-btn">🏠 Hub</a>
+  </div>
+  <div class="scoreboard">
+    <div class="stat-box"><div class="stat-val" id="scoreVal">0</div><div class="stat-lbl">Runs</div></div>
+    <div class="stat-box"><div class="stat-val" id="hitsVal">0</div><div class="stat-lbl">Hits</div></div>
+    <div class="stat-box"><div class="stat-val" id="outsVal">0</div><div class="stat-lbl">Outs</div></div>
+    <div class="stat-box"><div class="stat-val" id="avgVal">.000</div><div class="stat-lbl">Avg</div></div>
+  </div>
+</div>
+
+<!-- Softball Field SVG -->
+<div class="field-wrap">
+  <svg class="field-svg" viewBox="0 0 300 280" xmlns="http://www.w3.org/2000/svg">
+    <!-- Sky/Outfield grass -->
+    <rect width="300" height="280" fill="#0f1923"/>
+    <!-- Outfield arc fill -->
+    <path d="M 30 170 Q 150 -10 270 170 Z" fill="#1a4a1a"/>
+    <!-- Infield dirt -->
+    <polygon points="150,250 250,160 150,70 50,160" fill="#4a3520"/>
+    <!-- Infield grass -->
+    <polygon points="150,235 237,160 150,85 63,160" fill="#1a4a1a"/>
+    <!-- Foul lines -->
+    <line x1="150" y1="250" x2="30" y2="170" stroke="#ccaa66" stroke-width="1.5" opacity="0.5"/>
+    <line x1="150" y1="250" x2="270" y2="170" stroke="#ccaa66" stroke-width="1.5" opacity="0.5"/>
+    <!-- Base paths -->
+    <line x1="150" y1="245" x2="247" y2="158" stroke="#ccaa66" stroke-width="1.5"/>
+    <line x1="247" y1="158" x2="150" y2="72" stroke="#ccaa66" stroke-width="1.5"/>
+    <line x1="150" y1="72" x2="53" y2="158" stroke="#ccaa66" stroke-width="1.5"/>
+    <line x1="53" y1="158" x2="150" y2="245" stroke="#ccaa66" stroke-width="1.5"/>
+    <!-- Pitcher's mound -->
+    <circle cx="150" cy="158" r="10" fill="#5a4530"/>
+    <circle cx="150" cy="158" r="4" fill="#ccaa66"/>
+    <!-- Bases -->
+    <!-- Home plate (pentagon shape) -->
+    <polygon points="150,258 158,252 158,244 142,244 142,252" fill="white"/>
+    <!-- 1st base -->
+    <rect id="base1" x="241" y="152" width="14" height="14" rx="2" fill="white"/>
+    <!-- 2nd base -->
+    <rect id="base2" x="143" y="65" width="14" height="14" rx="2" fill="white"/>
+    <!-- 3rd base -->
+    <rect id="base3" x="45" y="152" width="14" height="14" rx="2" fill="white"/>
+    <!-- Runners -->
+    <circle id="runner1" cx="248" cy="158" r="9" fill="none" opacity="0"/>
+    <circle id="runner2" cx="150" cy="72" r="9" fill="none" opacity="0"/>
+    <circle id="runner3" cx="52" cy="158" r="9" fill="none" opacity="0"/>
+    <!-- Batter indicator -->
+    <circle cx="150" cy="252" r="6" fill="#fbbf24" id="batter"/>
+    <!-- Outs dots -->
+    <circle id="out1" cx="108" cy="270" r="6" fill="#2a4a6f"/>
+    <circle id="out2" cx="124" cy="270" r="6" fill="#2a4a6f"/>
+    <!-- Out label -->
+    <text x="86" y="274" fill="#94a3b8" font-size="9" font-family="system-ui">Outs:</text>
+    <!-- Hit indicator area -->
+    <text id="fieldMsg" x="150" y="30" text-anchor="middle" fill="#fbbf24" font-size="13" font-weight="bold" font-family="system-ui" opacity="0"></text>
+  </svg>
+</div>
+
+<!-- Question Area -->
+<div class="q-section">
+  <div class="at-bat-label" id="atBatLabel">At-Bat 1 of 9</div>
+  <div class="q-card">
+    <div class="diff-badge" id="diffBadge">Single</div>
+    <div class="q-txt" id="qTxt"></div>
+  </div>
+  <div class="answers" id="answers"></div>
+  <div class="fb-strip" id="fbStrip">
+    <div class="fb-title" id="fbTitle"></div>
+    <div id="fbBody"></div>
+  </div>
+  <button class="next-pitch-btn" id="nextPitch" onclick="nextAtBat()">Next At-Bat →</button>
+</div>
+
+<!-- Hit Splash -->
+<div class="hit-splash" id="hitSplash">
+  <div class="hit-text" id="hitTxt"></div>
+</div>
+
+<!-- Game Over -->
+<div class="gameover" id="gameover">
+  <div class="go-emoji" id="goEmoji">🥎</div>
+  <div class="go-title" id="goTitle">Game Over!</div>
+  <div class="go-avg-lbl">Batting Average</div>
+  <div class="go-avg" id="goAvg">.000</div>
+  <div class="go-stats">
+    <div><div class="go-stat-val" id="goRuns">0</div><div class="go-stat-lbl">Runs</div></div>
+    <div><div class="go-stat-val" id="goHits">0</div><div class="go-stat-lbl">Hits</div></div>
+    <div><div class="go-stat-val" id="goHR">0</div><div class="go-stat-lbl">HRs</div></div>
+  </div>
+  <div class="xp-pill" id="goXP">+0 XP ⚡</div>
+  <div class="go-btns">
+    <button class="btn-play-again" onclick="initGame()">🔄 Play Again</button>
+    <a class="btn-hub" href="index.html">🏠 Back to Hub</a>
+  </div>
+</div>
+
+<script>
+const SAVE_KEY = 'evie_eog_progress';
+const LVL_XP = [0,0,100,250,500,800,1200,1700,2300,3000,4000];
+function loadP(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY));return d||dflt();}catch(e){return dflt();}}
+function dflt(){return{xp:0,level:1,badges:[],domainCorrect:{ps:0,ls:0,ess:0},domainTotal:{ps:0,ls:0,ess:0},battingStats:{atBats:0,hits:0,homeRuns:0},flashcardsMastered:0,lastVisit:null,dailyStreak:0,bossesDefeated:[],scratchPacks:0};}
+function saveP(p){localStorage.setItem(SAVE_KEY,JSON.stringify(p));}
+function calcLvl(xp){for(let i=LVL_XP.length-1;i>=1;i--){if(xp>=LVL_XP[i])return i;}return 1;}
+
+// hit type: 'single','double','triple','homer'
+const LINEUP = [
+  {domain:'ls', hit:'single',
+   q:'Which organelle is called the powerhouse of the cell?',
+   opts:['Cell membrane','Chloroplast','Nucleus','Mitochondria'], ans:3,
+   explain:'Mitochondria produce energy (ATP) for the cell!'},
+  {domain:'ps', hit:'single',
+   q:'Ice melting into water is an example of a:',
+   opts:['Chemical change','Nuclear change','Physical change','Mixture forming'],
+   ans:2, explain:'Melting is physical — the water is still H₂O, just a different state!'},
+  {domain:'ess', hit:'single',
+   q:'What is the main energy source that drives the water cycle?',
+   opts:['The Moon','Wind','Ocean currents','The Sun'],
+   ans:3, explain:'The Sun\'s heat energy causes evaporation, powering the whole water cycle!'},
+  {domain:'ls', hit:'double',
+   q:'Which of the following is an ABIOTIC factor in an ecosystem?',
+   opts:['Bacteria in soil','Rabbits','Sunlight','Grass'],
+   ans:2, explain:'Abiotic = non-living. Sunlight, water, temperature, and soil are abiotic factors!'},
+  {domain:'ps', hit:'double',
+   q:'A ball rolling across the floor gradually slows. Which force causes this?',
+   opts:['Gravity','Applied force','Magnetism','Friction'],
+   ans:3, explain:'Friction opposes motion and slows the ball. It\'s a contact force acting opposite to the direction of movement!'},
+  {domain:'ess', hit:'double',
+   q:'Which type of rock is MOST LIKELY to contain fossils?',
+   opts:['Igneous','Metamorphic','Sedimentary','Volcanic'],
+   ans:2, explain:'Sedimentary rock forms from compressed layers where organisms can be buried and preserved as fossils!'},
+  {domain:'ls', hit:'triple',
+   q:'Brown beetles survive better than green beetles in brown soil. Over time, almost all beetles are brown. This demonstrates:',
+   opts:['Learned behavior','An acquired trait','Natural selection','Random mutation'],
+   ans:2, explain:'Natural selection! Brown beetles were better camouflaged, survived to reproduce, and passed on the brown trait!'},
+  {domain:'ess', hit:'triple',
+   q:'Which layer of Earth generates the planet\'s magnetic field?',
+   opts:['Crust','Mantle','Inner core','Outer core'],
+   ans:3, explain:'The liquid iron outer core creates electric currents that generate Earth\'s magnetic field, protecting us from solar radiation!'},
+  {domain:'ps', hit:'homer',
+   q:'Which of these involves a NON-CONTACT force?',
+   opts:['A softball player catching a ball','Friction slowing a sliding player','Gravity pulling a fly ball down','Pushing a batting tee'],
+   ans:2, explain:'Gravity is a non-contact force — Earth pulls objects down without physically touching them. Magnetic and electric forces are also non-contact!'}
+];
+
+const DIFF_INFO = {
+  single: {label:'Single 🏃', cls:'diff-single', bases:1},
+  double: {label:'Double 🏃‍♀️🏃‍♀️', cls:'diff-double', bases:2},
+  triple: {label:'Triple 🔥', cls:'diff-triple', bases:3},
+  homer:  {label:'Home Run 💥', cls:'diff-homer', bases:4}
+};
+
+// Game state
+let curIdx = 0, hits = 0, outs = 0, runs = 0, homeRuns = 0;
+let runners = [false, false, false]; // [1st, 2nd, 3rd]
+let answered = false;
+
+function initGame() {
+  document.getElementById('gameover').style.display = 'none';
+  curIdx = 0; hits = 0; outs = 0; runs = 0; homeRuns = 0;
+  runners = [false, false, false];
+  answered = false;
+  updateScoreboard();
+  updateField();
+  renderQ();
+}
+
+function renderQ() {
+  const item = LINEUP[curIdx];
+  const diff = DIFF_INFO[item.hit];
+  document.getElementById('atBatLabel').textContent = `At-Bat ${curIdx+1} of ${LINEUP.length}`;
+  const badge = document.getElementById('diffBadge');
+  badge.textContent = diff.label;
+  badge.className = `diff-badge ${diff.cls}`;
+  document.getElementById('qTxt').textContent = item.q;
+
+  const answersEl = document.getElementById('answers');
+  answersEl.innerHTML = ['A','B','C','D'].map((ltr,i) =>
+    `<button class="ans-btn" onclick="pick(${i})">
+      <span class="ans-letter">${ltr}</span><span>${item.opts[i]}</span>
+    </button>`
+  ).join('');
+
+  const fb = document.getElementById('fbStrip');
+  fb.style.display = 'none';
+  document.getElementById('nextPitch').style.display = 'none';
+  answered = false;
+}
+
+function pick(idx) {
+  if (answered) return;
+  answered = true;
+  const item = LINEUP[curIdx];
+  const btns = document.querySelectorAll('.ans-btn');
+  btns.forEach(b => b.disabled = true);
+  const correct = idx === item.ans;
+  btns[idx].classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) btns[item.ans].classList.add('correct');
+
+  const p = loadP();
+  p.domainTotal[item.domain] = (p.domainTotal[item.domain]||0) + 1;
+
+  const fb = document.getElementById('fbStrip');
+  fb.style.display = 'block';
+
+  if (correct) {
+    hits++;
+    const diff = DIFF_INFO[item.hit];
+    if (item.hit === 'homer') homeRuns++;
+    p.domainCorrect[item.domain] = (p.domainCorrect[item.domain]||0) + 1;
+    advanceRunners(diff.bases, item.hit === 'homer');
+    fb.className = 'fb-strip hit-fb';
+    const hitLabels = {single:'🏃 HIT! Single!', double:'💨 HIT! Double!', triple:'🔥 HIT! Triple!', homer:'💥 HOME RUN!!!'};
+    document.getElementById('fbTitle').textContent = hitLabels[item.hit];
+    document.getElementById('fbBody').textContent = item.explain;
+    showSplash(item.hit);
+  } else {
+    outs++;
+    fb.className = 'fb-strip out-fb';
+    document.getElementById('fbTitle').textContent = '⚾ Strike out! Out ' + outs + ' of 3';
+    document.getElementById('fbBody').textContent = item.explain;
+  }
+
+  updateScoreboard();
+  updateField();
+  saveP(p);
+  document.getElementById('nextPitch').style.display = 'block';
+  document.getElementById('nextPitch').textContent = curIdx >= LINEUP.length - 1 ? 'See Results 🏆' : 'Next At-Bat →';
+}
+
+function advanceRunners(bases, isHomer) {
+  if (isHomer) {
+    runs += (runners.filter(Boolean).length + 1);
+    runners = [false, false, false];
+    return;
+  }
+  // Score any runners who make it home
+  const newRunners = [false, false, false];
+  for (let i = 2; i >= 0; i--) {
+    if (runners[i]) {
+      const newPos = i + bases;
+      if (newPos >= 3) runs++;
+      else newRunners[newPos] = true;
+    }
+  }
+  // Batter advances
+  const batterPos = bases - 1;
+  if (batterPos >= 3) runs++;
+  else newRunners[batterPos] = true;
+  runners = newRunners;
+}
+
+function updateScoreboard() {
+  const atBats = curIdx + (answered ? 1 : 0);
+  const avg = atBats > 0 ? (hits / atBats) : 0;
+  document.getElementById('scoreVal').textContent = runs;
+  document.getElementById('hitsVal').textContent = hits;
+  document.getElementById('outsVal').textContent = outs;
+  document.getElementById('avgVal').textContent = avg >= 1 ? '1.000' : ('.' + String(Math.round(avg*1000)).padStart(3,'0'));
+}
+
+function updateField() {
+  // Update runner circles
+  const runnerEls = [
+    document.getElementById('runner1'),
+    document.getElementById('runner2'),
+    document.getElementById('runner3')
+  ];
+  const colors = ['#fbbf24','#4ade80','#60a5fa'];
+  runnerEls.forEach((el, i) => {
+    el.style.fill = colors[i];
+    el.style.stroke = '#fff';
+    el.style.strokeWidth = '2';
+    el.style.opacity = runners[i] ? '1' : '0';
+  });
+  // Outs dots
+  const out1 = document.getElementById('out1');
+  const out2 = document.getElementById('out2');
+  out1.style.fill = outs >= 1 ? '#f87171' : '#2a4a6f';
+  out2.style.fill = outs >= 2 ? '#f87171' : '#2a4a6f';
+}
+
+function showSplash(hitType) {
+  const splash = document.getElementById('hitSplash');
+  const txt = document.getElementById('hitTxt');
+  const msgs = {single:'SINGLE! 🏃', double:'DOUBLE! 💨', triple:'TRIPLE! 🔥', homer:'HOME RUN! 💥🎉'};
+  txt.textContent = msgs[hitType];
+  splash.className = `hit-splash ${hitType} show`;
+  setTimeout(() => { splash.className = 'hit-splash'; }, 900);
+}
+
+function nextAtBat() {
+  curIdx++;
+  if (curIdx >= LINEUP.length) { showGameOver(); return; }
+  renderQ();
+}
+
+function showGameOver() {
+  const atBats = LINEUP.length;
+  const avg = hits / atBats;
+  const avgStr = avg >= 1 ? '1.000' : ('.' + String(Math.round(avg*1000)).padStart(3,'0'));
+
+  let xp = hits * 10 + homeRuns * 15;
+  const p = loadP();
+  p.xp = (p.xp||0) + xp;
+  p.level = calcLvl(p.xp);
+  if (!p.battingStats) p.battingStats = {atBats:0,hits:0,homeRuns:0};
+  p.battingStats.atBats += atBats;
+  p.battingStats.hits += hits;
+  p.battingStats.homeRuns += homeRuns;
+  if (homeRuns > 0 && !p.badges?.includes('home_run')) {
+    if (!p.badges) p.badges = [];
+    p.badges.push('home_run');
+  }
+  saveP(p);
+
+  let emoji = '🥎', title = 'Good Effort!';
+  if (avg >= 0.9) { emoji = '⭐'; title = 'ALL-STAR GAME! Incredible!'; }
+  else if (avg >= 0.7) { emoji = '🏆'; title = 'Amazing Batting!'; }
+  else if (avg >= 0.5) { emoji = '💪'; title = 'Solid Game!'; }
+  else if (avg >= 0.33) { emoji = '📚'; title = 'Keep Studying!'; }
+
+  document.getElementById('goEmoji').textContent = emoji;
+  document.getElementById('goTitle').textContent = title;
+  document.getElementById('goAvg').textContent = avgStr;
+  document.getElementById('goRuns').textContent = runs;
+  document.getElementById('goHits').textContent = hits;
+  document.getElementById('goHR').textContent = homeRuns;
+  document.getElementById('goXP').textContent = `+${xp} XP ⚡`;
+  document.getElementById('gameover').style.display = 'flex';
+}
+
+initGame();
+</script>
+</body>
+</html>

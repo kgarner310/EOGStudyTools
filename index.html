@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evie's Science HQ 🔬</title>
+<style>
+:root {
+  --bg: #0f1923;
+  --card: #1a2940;
+  --card2: #1e3050;
+  --green: #4ade80;
+  --blue: #60a5fa;
+  --coral: #f87171;
+  --gold: #fbbf24;
+  --purple: #a78bfa;
+  --orange: #fb923c;
+  --text: #e0f2fe;
+  --muted: #94a3b8;
+  --ps-color: #60a5fa;
+  --ls-color: #4ade80;
+  --ess-color: #fb923c;
+  --border-r: 16px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 100px;
+}
+h1,h2,h3 { line-height: 1.2; }
+
+/* Header */
+.hero {
+  background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #0f1923 100%);
+  padding: 24px 20px 20px;
+  border-bottom: 2px solid #1e3a5f;
+}
+.hero-top { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+.avatar-ring {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--green), var(--blue));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px; flex-shrink: 0;
+  box-shadow: 0 0 20px rgba(74,222,128,0.4);
+}
+.hero-info h1 { font-size: 1.4rem; color: var(--text); }
+.level-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--gold); color: #1a1a1a;
+  font-weight: 700; font-size: 0.75rem;
+  padding: 3px 10px; border-radius: 20px; margin-top: 4px;
+}
+.xp-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.xp-bar-wrap {
+  flex: 1; height: 14px; background: #0f2040;
+  border-radius: 7px; overflow: hidden;
+  border: 1px solid #2a4a6f;
+}
+.xp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), var(--blue));
+  border-radius: 7px;
+  transition: width 0.8s ease;
+}
+.xp-text { font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+
+/* Domain mastery */
+.mastery-section { padding: 16px 20px 0; }
+.mastery-section h2 { font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+.mastery-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.mastery-label { font-size: 0.8rem; width: 110px; flex-shrink: 0; }
+.mastery-track { flex: 1; height: 10px; background: #0f2040; border-radius: 5px; overflow: hidden; }
+.mastery-fill { height: 100%; border-radius: 5px; transition: width 0.8s ease; }
+.mastery-pct { font-size: 0.75rem; color: var(--muted); width: 36px; text-align: right; }
+
+/* Focus suggestion */
+.focus-card {
+  margin: 16px 20px 0;
+  background: linear-gradient(135deg, #1e3a5f, #1a2940);
+  border: 1px solid #2a4a6f;
+  border-radius: var(--border-r);
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.focus-icon { font-size: 1.8rem; }
+.focus-text { font-size: 0.85rem; color: var(--muted); }
+.focus-text strong { color: var(--text); display: block; font-size: 0.95rem; margin-bottom: 2px; }
+
+/* Batting stats */
+.stats-row {
+  margin: 12px 20px 0;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+}
+.stat-card {
+  background: var(--card);
+  border: 1px solid #2a4a6f;
+  border-radius: 12px;
+  padding: 12px 10px;
+  text-align: center;
+}
+.stat-value { font-size: 1.4rem; font-weight: 700; color: var(--gold); }
+.stat-label { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+/* Tools grid */
+.section-header {
+  padding: 20px 20px 12px;
+  font-size: 0.85rem; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 0 20px;
+}
+@media (min-width: 600px) { .tools-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 900px) { .tools-grid { grid-template-columns: repeat(4, 1fr); } }
+
+.tool-card {
+  background: var(--card);
+  border: 1px solid #2a4a6f;
+  border-radius: var(--border-r);
+  padding: 18px 14px;
+  text-decoration: none;
+  color: var(--text);
+  display: flex; flex-direction: column; align-items: center;
+  gap: 8px;
+  transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  min-height: 130px;
+  justify-content: center;
+}
+.tool-card:hover, .tool-card:focus {
+  transform: translateY(-3px);
+  background: var(--card2);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  outline: none;
+}
+.tool-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  border-radius: var(--border-r) var(--border-r) 0 0;
+}
+.tool-card.ps::before { background: var(--ps-color); }
+.tool-card.ls::before { background: var(--ls-color); }
+.tool-card.ess::before { background: var(--ess-color); }
+.tool-card.all::before { background: linear-gradient(90deg, var(--ps-color), var(--ls-color), var(--ess-color)); }
+.tool-card.fun::before { background: var(--purple); }
+.tool-card.reward::before { background: var(--gold); }
+
+.tool-icon { font-size: 2.2rem; }
+.tool-name { font-size: 0.85rem; font-weight: 600; text-align: center; }
+.tool-desc { font-size: 0.7rem; color: var(--muted); text-align: center; line-height: 1.3; }
+.tool-xp {
+  position: absolute; top: 8px; right: 8px;
+  background: rgba(251,191,36,0.15); color: var(--gold);
+  font-size: 0.65rem; font-weight: 700;
+  padding: 2px 6px; border-radius: 8px;
+}
+
+/* Badges */
+.badges-section { padding: 20px; }
+.badges-section h2 { font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+.badges-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.badge {
+  background: var(--card);
+  border: 1px solid #2a4a6f;
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.8rem;
+}
+.badge.earned { border-color: var(--gold); background: rgba(251,191,36,0.1); }
+.badge.locked { opacity: 0.45; filter: grayscale(0.5); }
+.badge-icon { font-size: 1.1rem; }
+
+/* Bottom nav bar */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #0d1a2e;
+  border-top: 1px solid #2a4a6f;
+  padding: 10px 20px 12px;
+  display: flex; align-items: center; gap: 12px;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+.nav-level { font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+.nav-xp-wrap { flex: 1; height: 8px; background: #0f2040; border-radius: 4px; overflow: hidden; }
+.nav-xp-fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--blue)); border-radius: 4px; transition: width 0.5s; }
+.nav-next { font-size: 0.7rem; color: var(--gold); white-space: nowrap; }
+
+/* Level up toast */
+.toast {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
+  background: var(--gold); color: #1a1a1a;
+  padding: 14px 24px; border-radius: 30px;
+  font-weight: 700; font-size: 1rem;
+  z-index: 200; transition: transform 0.4s ease;
+  box-shadow: 0 8px 32px rgba(251,191,36,0.5);
+  text-align: center;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-top">
+    <div class="avatar-ring" id="avatar">🔬</div>
+    <div class="hero-info">
+      <h1>Evie's Science HQ</h1>
+      <div class="level-badge" id="levelBadge">⚛️ Level 1 — Molecule</div>
+    </div>
+  </div>
+  <div class="xp-row">
+    <div class="xp-bar-wrap">
+      <div class="xp-bar-fill" id="xpFill" style="width:0%"></div>
+    </div>
+    <div class="xp-text" id="xpText">0 XP</div>
+  </div>
+</div>
+
+<div class="mastery-section">
+  <h2>Domain Mastery</h2>
+  <div class="mastery-bar-row">
+    <div class="mastery-label">⚡ Physical Science</div>
+    <div class="mastery-track"><div class="mastery-fill" id="psFill" style="width:0%;background:var(--ps-color)"></div></div>
+    <div class="mastery-pct" id="psPct">0%</div>
+  </div>
+  <div class="mastery-bar-row">
+    <div class="mastery-label">🌿 Life Science</div>
+    <div class="mastery-track"><div class="mastery-fill" id="lsFill" style="width:0%;background:var(--ls-color)"></div></div>
+    <div class="mastery-pct" id="lsPct">0%</div>
+  </div>
+  <div class="mastery-bar-row">
+    <div class="mastery-label">🌍 Earth &amp; Space</div>
+    <div class="mastery-track"><div class="mastery-fill" id="essFill" style="width:0%;background:var(--ess-color)"></div></div>
+    <div class="mastery-pct" id="essPct">0%</div>
+  </div>
+</div>
+
+<div class="focus-card">
+  <div class="focus-icon" id="focusIcon">🎯</div>
+  <div class="focus-text">
+    <strong id="focusTitle">Today's Focus</strong>
+    <span id="focusDesc">Loading your study suggestion...</span>
+  </div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-value" id="batAvg">.000</div>
+    <div class="stat-label">Batting Avg</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" id="totalXP">0</div>
+    <div class="stat-label">Total XP</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" id="streakVal">0</div>
+    <div class="stat-label">Day Streak 🔥</div>
+  </div>
+</div>
+
+<div class="section-header">Study Tools</div>
+
+<div class="tools-grid">
+  <a href="flashcards.html" class="tool-card all">
+    <div class="tool-xp">+5 XP/card</div>
+    <div class="tool-icon">🃏</div>
+    <div class="tool-name">Flashcards</div>
+    <div class="tool-desc">Flip cards for all domains with confidence tracking</div>
+  </a>
+  <a href="quiz.html" class="tool-card all">
+    <div class="tool-xp">+10 XP/Q</div>
+    <div class="tool-icon">📝</div>
+    <div class="tool-name">Practice Test</div>
+    <div class="tool-desc">Full 44-question EOG-style test with explanations</div>
+  </a>
+  <a href="boss-battle.html" class="tool-card fun">
+    <div class="tool-xp">+100 XP boss</div>
+    <div class="tool-icon">⚔️</div>
+    <div class="tool-name">Boss Battle</div>
+    <div class="tool-desc">Defeat science bosses — one per domain!</div>
+  </a>
+  <a href="batting.html" class="tool-card fun">
+    <div class="tool-xp">+25 XP HR</div>
+    <div class="tool-icon">🥎</div>
+    <div class="tool-name">Science at Bat</div>
+    <div class="tool-desc">Answer questions to get hits and score runs</div>
+  </a>
+  <a href="food-web.html" class="tool-card ls">
+    <div class="tool-xp">+50 XP</div>
+    <div class="tool-icon">🕸️</div>
+    <div class="tool-name">Food Web Builder</div>
+    <div class="tool-desc">Build ecosystems and see what happens</div>
+  </a>
+  <a href="matter-sorter.html" class="tool-card ps">
+    <div class="tool-xp">+5 XP/sort</div>
+    <div class="tool-icon">🧪</div>
+    <div class="tool-name">Matter Sorter</div>
+    <div class="tool-desc">Swipe to sort physical vs chemical changes</div>
+  </a>
+  <a href="scratch-cards.html" class="tool-card all">
+    <div class="tool-xp">+30 XP rare</div>
+    <div class="tool-icon">🎟️</div>
+    <div class="tool-name">Scratch Cards</div>
+    <div class="tool-desc">Scratch to reveal science vocab and concepts</div>
+  </a>
+  <a href="forces-lab.html" class="tool-card ps">
+    <div class="tool-xp">+5 XP/Q</div>
+    <div class="tool-icon">⚡</div>
+    <div class="tool-name">Forces Lab</div>
+    <div class="tool-desc">Push sliders and see forces in action</div>
+  </a>
+  <a href="water-cycle.html" class="tool-card ess">
+    <div class="tool-xp">+40 XP</div>
+    <div class="tool-icon">💧</div>
+    <div class="tool-name">Water Journey</div>
+    <div class="tool-desc">Follow Droppy the water droplet through the cycle</div>
+  </a>
+  <a href="trivia.html" class="tool-card all">
+    <div class="tool-xp">+8 XP/Q</div>
+    <div class="tool-icon">⚡</div>
+    <div class="tool-name">Lightning Trivia</div>
+    <div class="tool-desc">30 seconds — answer as many as you can!</div>
+  </a>
+  <a href="tips.html" class="tool-card reward">
+    <div class="tool-icon">💡</div>
+    <div class="tool-name">Tips &amp; Tricks</div>
+    <div class="tool-desc">EOG strategies and day-of checklist</div>
+  </a>
+</div>
+
+<div class="badges-section">
+  <h2>Badges</h2>
+  <div class="badges-grid" id="badgesGrid"></div>
+</div>
+
+<div class="bottom-nav">
+  <div class="nav-level" id="navLevel">Lv.1</div>
+  <div class="nav-xp-wrap">
+    <div class="nav-xp-fill" id="navXpFill" style="width:0%"></div>
+  </div>
+  <div class="nav-next" id="navNext">Next: 100 XP</div>
+</div>
+
+<div class="toast" id="toast">🎉 Level Up! You're now a Atom!</div>
+
+<script>
+const SAVE_KEY = 'evie_eog_progress';
+const LEVEL_XP = [0, 0, 100, 250, 500, 800, 1200, 1700, 2300, 3000, 4000];
+const LEVEL_NAMES = ['','Molecule','Atom','Cell','Organism','Ecosystem Explorer','Earth Scientist','Matter Master','Force Field','Science Star','EOG Champion 🏆'];
+const LEVEL_AVATARS = ['','⚛️','🔬','🧬','🌱','🌍','🔭','🧪','⚡','🌟','🏆'];
+
+const ALL_BADGES = [
+  { id:'boss_ps', icon:'👹', name:'Matter Slayer', desc:'Defeated the Matter Monster' },
+  { id:'boss_ls', icon:'🐉', name:'Ecosystem Slayer', desc:'Defeated the Ecosystem Overlord' },
+  { id:'boss_ess', icon:'🌋', name:'Earth Slayer', desc:'Defeated the Earth Shaker' },
+  { id:'perfect_quiz', icon:'💯', name:'Perfect Score', desc:'Got 100% on the practice test' },
+  { id:'streak_5', icon:'🔥', name:'On Fire', desc:'5 correct in a row' },
+  { id:'home_run', icon:'🏆', name:'Home Run Derby', desc:'Hit 3 home runs in one game' },
+  { id:'speed_demon', icon:'⚡', name:'Speed Demon', desc:'Scored 10+ in lightning trivia' },
+  { id:'full_cycle', icon:'💧', name:'Full Cycle', desc:'Completed the water cycle journey' },
+  { id:'daily', icon:'📅', name:'Daily Scientist', desc:'Returned to study the next day' },
+  { id:'food_web', icon:'🕸️', name:'Web Weaver', desc:'Built a correct food web' },
+  { id:'flashmaster', icon:'🃏', name:'Flash Master', desc:'Mastered 30 flashcards' },
+  { id:'eog_champ', icon:'🏅', name:'EOG Champion', desc:'Reached Level 10!' },
+];
+
+function loadProgress() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
+    const defaults = {
+      xp:0, level:1, badges:[],
+      domainCorrect:{ps:0,ls:0,ess:0},
+      domainTotal:{ps:0,ls:0,ess:0},
+      battingStats:{atBats:0,hits:0,homeRuns:0},
+      flashcardsMastered:0,
+      lastVisit:null, dailyStreak:0,
+      bossesDefeated:[], scratchPacks:0
+    };
+    return saved ? Object.assign(defaults, saved) : defaults;
+  } catch {
+    return {xp:0,level:1,badges:[],domainCorrect:{ps:0,ls:0,ess:0},domainTotal:{ps:0,ls:0,ess:0},battingStats:{atBats:0,hits:0,homeRuns:0},flashcardsMastered:0,lastVisit:null,dailyStreak:0,bossesDefeated:[],scratchPacks:0};
+  }
+}
+
+function calcLevel(xp) {
+  for (let i = LEVEL_XP.length - 1; i >= 1; i--) {
+    if (xp >= LEVEL_XP[i]) return i;
+  }
+  return 1;
+}
+
+function domainPct(p, domain) {
+  if (!p.domainTotal[domain]) return 0;
+  return Math.round((p.domainCorrect[domain] / p.domainTotal[domain]) * 100);
+}
+
+function focusSuggestion(p) {
+  const psPct = domainPct(p,'ps');
+  const lsPct = domainPct(p,'ls');
+  const essPct = domainPct(p,'ess');
+  // Weighted by test importance if equal, otherwise lowest mastery first
+  const scores = [
+    { domain:'Life Science', pct:lsPct, icon:'🌿', tool:'food-web.html', desc:'Try the Food Web Builder or Flashcards for LS' },
+    { domain:'Physical Science', pct:psPct, icon:'⚡', tool:'matter-sorter.html', desc:'Try Matter Sorter or Forces Lab for PS' },
+    { domain:'Earth & Space', pct:essPct, icon:'🌍', tool:'water-cycle.html', desc:'Try the Water Cycle Journey or Flashcards for ESS' },
+  ];
+  // If no data, suggest Life Science first (biggest chunk)
+  if (p.domainTotal.ps + p.domainTotal.ls + p.domainTotal.ess === 0) {
+    return { icon:'🌿', title:'Start with Life Science!', desc:'It\'s 48% of the test — the biggest section. Try Flashcards first!' };
+  }
+  scores.sort((a,b) => a.pct - b.pct);
+  const weakest = scores[0];
+  return { icon:weakest.icon, title:`Work on ${weakest.domain} (${weakest.pct}%)`, desc:weakest.desc };
+}
+
+function renderBadges(p) {
+  const grid = document.getElementById('badgesGrid');
+  grid.innerHTML = ALL_BADGES.map(b => {
+    const earned = p.badges.includes(b.id);
+    return `<div class="badge ${earned ? 'earned' : 'locked'}" title="${b.desc}">
+      <span class="badge-icon">${b.icon}</span>
+      <span>${b.name}</span>
+    </div>`;
+  }).join('');
+}
+
+function updateStreak(p) {
+  const today = new Date().toDateString();
+  if (p.lastVisit) {
+    const last = new Date(p.lastVisit);
+    const now = new Date();
+    const diffDays = Math.floor((now - last) / 86400000);
+    if (diffDays === 1) {
+      p.dailyStreak = (p.dailyStreak || 0) + 1;
+      if (p.dailyStreak >= 2 && !p.badges.includes('daily')) p.badges.push('daily');
+    } else if (diffDays > 1) {
+      p.dailyStreak = 1;
+    }
+  } else {
+    p.dailyStreak = 1;
+  }
+  p.lastVisit = new Date().toISOString();
+  localStorage.setItem(SAVE_KEY, JSON.stringify(p));
+  return p;
+}
+
+function render() {
+  let p = loadProgress();
+  p = updateStreak(p);
+  const lvl = calcLevel(p.xp);
+  p.level = lvl;
+
+  // Avatar & level
+  document.getElementById('avatar').textContent = LEVEL_AVATARS[lvl] || '🔬';
+  document.getElementById('levelBadge').textContent = `${LEVEL_AVATARS[lvl]} Level ${lvl} — ${LEVEL_NAMES[lvl]}`;
+
+  // XP bar
+  const curLvlXp = LEVEL_XP[lvl] || 0;
+  const nextLvlXp = LEVEL_XP[Math.min(lvl+1, LEVEL_XP.length-1)] || LEVEL_XP[LEVEL_XP.length-1];
+  const pct = lvl >= 10 ? 100 : Math.round(((p.xp - curLvlXp) / (nextLvlXp - curLvlXp)) * 100);
+  document.getElementById('xpFill').style.width = pct + '%';
+  document.getElementById('xpText').textContent = `${p.xp} XP`;
+
+  // Domain mastery
+  ['ps','ls','ess'].forEach(d => {
+    const pct = domainPct(p,d);
+    document.getElementById(d+'Fill').style.width = pct + '%';
+    document.getElementById(d+'Pct').textContent = pct + '%';
+  });
+
+  // Focus suggestion
+  const focus = focusSuggestion(p);
+  document.getElementById('focusIcon').textContent = focus.icon;
+  document.getElementById('focusTitle').textContent = focus.title;
+  document.getElementById('focusDesc').textContent = focus.desc;
+
+  // Stats
+  const avg = p.battingStats.atBats > 0
+    ? ('.' + String(Math.round((p.battingStats.hits / p.battingStats.atBats) * 1000)).padStart(3,'0'))
+    : '.000';
+  document.getElementById('batAvg').textContent = avg;
+  document.getElementById('totalXP').textContent = p.xp;
+  document.getElementById('streakVal').textContent = p.dailyStreak || 1;
+
+  // Bottom nav
+  document.getElementById('navLevel').textContent = `Lv.${lvl}`;
+  document.getElementById('navXpFill').style.width = pct + '%';
+  if (lvl >= 10) {
+    document.getElementById('navNext').textContent = 'MAX LEVEL!';
+  } else {
+    document.getElementById('navNext').textContent = `Next: ${nextLvlXp - p.xp} XP`;
+  }
+
+  // Badges
+  renderBadges(p);
+}
+
+render();
+</script>
+</body>
+</html>

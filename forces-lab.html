@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forces Lab ⚡</title>
+<style>
+:root {
+  --bg: #0f1923; --card: #1a2940; --card2: #1e3050;
+  --green: #4ade80; --blue: #60a5fa; --coral: #f87171;
+  --gold: #fbbf24; --purple: #a78bfa; --orange: #fb923c;
+  --text: #e0f2fe; --muted: #94a3b8; --r: 16px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 60px; }
+
+.header {
+  background: linear-gradient(135deg, #0f3460, #16213e, #0f1923);
+  padding: 16px 20px; display: flex; align-items: center; gap: 10px;
+  border-bottom: 2px solid #1e3a5f;
+}
+.header a { color: var(--muted); font-size: 0.85rem; text-decoration: none; font-weight: 600; }
+.header h1 { font-size: 1.3rem; flex: 1; text-align: center; }
+
+/* Scene */
+.scene-wrap { padding: 12px 16px; }
+.scene {
+  background: linear-gradient(180deg, #0a1a30 0%, #0a1a30 60%, #1a3a1a 60%, #1a3a1a 100%);
+  border-radius: var(--r); overflow: hidden; position: relative;
+  height: 170px; border: 1px solid #2a4a6f;
+}
+/* Surface line */
+.surface-line {
+  position: absolute; bottom: 44px; left: 0; right: 0;
+  height: 3px; background: #4a3520;
+}
+.surface-tex {
+  position: absolute; bottom: 26px; left: 0; right: 0;
+  text-align: center; font-size: 0.7rem; color: #7a6a50;
+  font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+}
+
+/* Ball */
+.ball-track { position: absolute; bottom: 47px; left: 0; right: 0; height: 50px; overflow: hidden; }
+.ball {
+  position: absolute; font-size: 2.5rem;
+  transition: left 0.6s cubic-bezier(.4,0,.2,1);
+  transform: translateX(-50%);
+}
+@keyframes slideRight { 0%{left:30%} 100%{left:85%} }
+@keyframes slideLeft { 0%{left:70%} 100%{left:15%} }
+@keyframes balancedPulse { 0%,100%{transform:translateX(-50%) scale(1)} 50%{transform:translateX(-50%) scale(1.05)} }
+
+/* Force arrows SVG in scene */
+.force-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+
+/* Status banner */
+.status-banner {
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  padding: 4px 14px; border-radius: 20px;
+  font-size: 0.8rem; font-weight: 700; white-space: nowrap;
+}
+.status-banner.balanced { background: rgba(74,222,128,.2); color: var(--green); border: 1px solid var(--green); }
+.status-banner.unbalanced { background: rgba(248,113,113,.2); color: var(--coral); border: 1px solid var(--coral); }
+
+/* Controls */
+.controls { padding: 0 16px 12px; display: flex; flex-direction: column; gap: 14px; }
+.control-group label {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.85rem; font-weight: 600; margin-bottom: 6px;
+}
+.force-val { font-weight: 800; color: var(--gold); }
+input[type=range] {
+  -webkit-appearance: none; width: 100%; height: 8px; border-radius: 4px;
+  background: #1e3050; outline: none; cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%;
+  cursor: pointer; border: 2px solid white;
+}
+.range-applied::-webkit-slider-thumb { background: var(--green); }
+.range-applied { accent-color: var(--green); }
+.range-labels { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+/* Surface buttons */
+.surface-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.surface-btn {
+  padding: 10px 6px; border-radius: 10px; border: 2px solid #2a4a6f;
+  background: var(--card); color: var(--text); font-size: 0.8rem;
+  font-weight: 600; cursor: pointer; text-align: center; transition: all 0.18s;
+}
+.surface-btn.active { border-color: var(--blue); background: rgba(96,165,250,.15); color: var(--blue); }
+.surface-icon { font-size: 1.4rem; display: block; margin-bottom: 2px; }
+
+/* Net force display */
+.net-force-card {
+  background: var(--card); border-radius: var(--r);
+  padding: 14px 16px; margin: 0 16px;
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+  text-align: center; border: 1px solid #2a4a6f;
+}
+.nf-item {}
+.nf-val { font-size: 1.4rem; font-weight: 800; }
+.nf-lbl { font-size: 0.68rem; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: .5px; }
+.applied-val { color: var(--green); }
+.friction-val { color: var(--coral); }
+.net-val { color: var(--gold); }
+
+/* Motion result */
+.motion-card {
+  margin: 10px 16px; padding: 12px 16px; border-radius: 12px;
+  font-size: 0.9rem; font-weight: 600; line-height: 1.4;
+}
+.motion-card.balanced { background: rgba(74,222,128,.1); border: 1px solid var(--green); }
+.motion-card.unbalanced { background: rgba(248,113,113,.1); border: 1px solid var(--coral); }
+
+/* Scenario cards */
+.scenarios { padding: 12px 16px; }
+.scenarios h2 { font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.scenario-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.scenario-btn {
+  padding: 12px 10px; border-radius: 12px; border: 1px solid #2a4a6f;
+  background: var(--card); text-align: left; cursor: pointer; transition: all 0.18s;
+}
+.scenario-btn:active { transform: scale(0.97); }
+.scenario-btn .sc-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 3px; }
+.scenario-btn .sc-desc { font-size: 0.75rem; color: var(--muted); line-height: 1.3; }
+
+/* Quiz */
+.quiz-section { padding: 16px; }
+.quiz-section h2 { font-size: 1rem; font-weight: 700; margin-bottom: 12px; color: var(--gold); }
+.quiz-q { background: var(--card); border-radius: var(--r); padding: 14px; margin-bottom: 12px; border: 1px solid #2a4a6f; }
+.quiz-q .q-txt { font-size: 0.92rem; font-weight: 600; line-height: 1.45; margin-bottom: 10px; }
+.qopts { display: flex; flex-direction: column; gap: 7px; }
+.qbtn {
+  width: 100%; padding: 10px 12px; border-radius: 10px;
+  border: 2px solid #2a4a6f; background: var(--card2);
+  color: var(--text); font-size: 0.85rem; text-align: left;
+  cursor: pointer; transition: all 0.18s; display: flex; gap: 8px; align-items: center;
+}
+.qbtn:disabled { cursor: default; }
+.qbtn.correct { background: rgba(74,222,128,.2); border-color: var(--green); }
+.qbtn.wrong { background: rgba(248,113,113,.2); border-color: var(--coral); }
+.qltr { width: 22px; height: 22px; border-radius: 50%; background: #2a4a6f; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; }
+.qbtn.correct .qltr { background: var(--green); color: #1a1a1a; }
+.qbtn.wrong .qltr { background: var(--coral); color: #1a1a1a; }
+.qexp { font-size: 0.83rem; color: var(--muted); margin-top: 6px; padding: 8px; background: rgba(255,255,255,.04); border-radius: 8px; display: none; line-height: 1.4; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="index.html">🏠 Hub</a>
+  <h1>⚡ Forces Lab</h1>
+  <span style="width:48px"></span>
+</div>
+
+<!-- Scene -->
+<div class="scene-wrap">
+  <div class="scene" id="scene">
+    <svg class="force-svg" id="forceSvg" viewBox="0 0 320 170" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr-green" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#4ade80"/>
+        </marker>
+        <marker id="arr-red" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#f87171"/>
+        </marker>
+        <marker id="arr-blue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#60a5fa"/>
+        </marker>
+        <marker id="arr-gray" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+        </marker>
+      </defs>
+      <!-- Applied force arrow (right) -->
+      <line id="arrowApplied" x1="160" y1="97" x2="160" y2="97" stroke="#4ade80" stroke-width="3" marker-end="url(#arr-green)"/>
+      <text id="lblApplied" x="0" y="0" fill="#4ade80" font-size="9" font-family="system-ui" font-weight="bold" opacity="0"></text>
+      <!-- Friction arrow (left) -->
+      <line id="arrowFriction" x1="160" y1="103" x2="160" y2="103" stroke="#f87171" stroke-width="3" marker-end="url(#arr-red)"/>
+      <text id="lblFriction" x="0" y="0" fill="#f87171" font-size="9" font-family="system-ui" font-weight="bold" opacity="0"></text>
+      <!-- Gravity arrow (down) -->
+      <line id="arrowGravity" x1="160" y1="90" x2="160" y2="112" stroke="#60a5fa" stroke-width="2" marker-end="url(#arr-blue)"/>
+      <text x="168" y="110" fill="#60a5fa" font-size="8" font-family="system-ui">Gravity</text>
+      <!-- Normal force arrow (up) -->
+      <line id="arrowNormal" x1="160" y1="125" x2="160" y2="103" stroke="#94a3b8" stroke-width="2" marker-end="url(#arr-gray)"/>
+      <text x="165" y="118" fill="#94a3b8" font-size="8" font-family="system-ui">Normal</text>
+    </svg>
+    <div class="ball-track">
+      <div class="ball" id="ball" style="left:50%">🥎</div>
+    </div>
+    <div class="surface-line" id="surfaceLine"></div>
+    <div class="surface-tex" id="surfaceTex">Grass Field</div>
+    <div class="status-banner" id="statusBanner"></div>
+  </div>
+</div>
+
+<!-- Net force display -->
+<div class="net-force-card">
+  <div class="nf-item"><div class="nf-val applied-val" id="dispApplied">0 N</div><div class="nf-lbl">→ Applied</div></div>
+  <div class="nf-item"><div class="nf-val friction-val" id="dispFriction">0 N</div><div class="nf-lbl">← Friction</div></div>
+  <div class="nf-item"><div class="nf-val net-val" id="dispNet">0 N</div><div class="nf-lbl">Net Force</div></div>
+</div>
+
+<div class="motion-card" id="motionCard">...</div>
+
+<!-- Controls -->
+<div class="controls" style="margin-top:12px">
+  <div class="control-group">
+    <label>
+      <span>➡️ Applied Force</span>
+      <span class="force-val" id="appliedLabel">0 N</span>
+    </label>
+    <input type="range" class="range-applied" id="appliedSlider" min="0" max="10" value="0" oninput="update()">
+    <div class="range-labels"><span>0 N</span><span>5 N</span><span>10 N</span></div>
+  </div>
+  <div class="control-group">
+    <label><span>🌍 Surface (affects friction)</span></label>
+    <div class="surface-btns">
+      <button class="surface-btn" id="surf-ice" onclick="setSurface('ice',1)">
+        <span class="surface-icon">🧊</span>Ice (low)
+      </button>
+      <button class="surface-btn active" id="surf-grass" onclick="setSurface('grass',4)">
+        <span class="surface-icon">🌿</span>Grass (med)
+      </button>
+      <button class="surface-btn" id="surf-carpet" onclick="setSurface('carpet',7)">
+        <span class="surface-icon">🟫</span>Carpet (high)
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Scenarios -->
+<div class="scenarios">
+  <h2>⚙️ Load a Scenario</h2>
+  <div class="scenario-grid">
+    <button class="scenario-btn" onclick="loadScenario(3,'grass',4)">
+      <div class="sc-title">⚖️ Balanced Forces</div>
+      <div class="sc-desc">Same push as friction → no change in motion</div>
+    </button>
+    <button class="scenario-btn" onclick="loadScenario(8,'ice',1)">
+      <div class="sc-title">🏒 Ice Push</div>
+      <div class="sc-desc">Big push, very low friction → fast movement!</div>
+    </button>
+    <button class="scenario-btn" onclick="loadScenario(0,'grass',4)">
+      <div class="sc-title">🛑 Ball Rolling to Stop</div>
+      <div class="sc-desc">No push, friction acts alone → ball slows!</div>
+    </button>
+    <button class="scenario-btn" onclick="loadScenario(6,'carpet',7)">
+      <div class="sc-title">📦 Heavy Carpet Push</div>
+      <div class="sc-desc">Big push but high friction — will it move?</div>
+    </button>
+  </div>
+</div>
+
+<!-- Quiz -->
+<div class="quiz-section">
+  <h2>🧪 Force Quiz</h2>
+
+  <div class="quiz-q">
+    <div class="q-txt">If applied force = 5 N and friction = 5 N, what will happen to the object?</div>
+    <div class="qopts" id="q1opts">
+      <button class="qbtn" onclick="qpick(1,0,2)"><span class="qltr">A</span>It will speed up to the right</button>
+      <button class="qbtn" onclick="qpick(1,1,2)"><span class="qltr">B</span>It will slow down and stop</button>
+      <button class="qbtn" onclick="qpick(1,2,2)"><span class="qltr">C</span>It will stay at rest OR keep moving at the same speed</button>
+      <button class="qbtn" onclick="qpick(1,3,2)"><span class="qltr">D</span>It will move to the left</button>
+    </div>
+    <div class="qexp" id="qe1">Balanced forces (5N = 5N, net = 0N) means NO change in motion! Object stays still if it was still, or keeps moving at the same speed if it was already moving. Newton's 1st Law!</div>
+  </div>
+
+  <div class="quiz-q">
+    <div class="q-txt">A softball is hit and rolls across a grass field, gradually slowing down. Which force is causing this change in motion?</div>
+    <div class="qopts" id="q2opts">
+      <button class="qbtn" onclick="qpick(2,0,2)"><span class="qltr">A</span>Gravity pulling it sideways</button>
+      <button class="qbtn" onclick="qpick(2,1,2)"><span class="qltr">B</span>The applied force of the hit</button>
+      <button class="qbtn" onclick="qpick(2,2,2)"><span class="qltr">C</span>Friction from the grass surface</button>
+      <button class="qbtn" onclick="qpick(2,3,2)"><span class="qltr">D</span>The normal force from the ground</button>
+    </div>
+    <div class="qexp" id="qe2">Friction! When the applied force (hit) stops, friction from the grass acts opposite to the ball's motion. Friction is an unbalanced force here (no opposing applied force) → ball slows and stops.</div>
+  </div>
+
+  <div class="quiz-q">
+    <div class="q-txt">Gravity is classified as what type of force?</div>
+    <div class="qopts" id="q3opts">
+      <button class="qbtn" onclick="qpick(3,0,1)"><span class="qltr">A</span>Contact force — objects must physically touch</button>
+      <button class="qbtn" onclick="qpick(3,1,1)"><span class="qltr">B</span>Non-contact force — acts at a distance without touching</button>
+      <button class="qbtn" onclick="qpick(3,2,1)"><span class="qltr">C</span>Applied force — caused by a person pushing</button>
+      <button class="qbtn" onclick="qpick(3,3,1)"><span class="qltr">D</span>Friction force — opposes motion</button>
+    </div>
+    <div class="qexp" id="qe3">Non-contact force! Gravity acts at a distance — Earth pulls you down without physically touching you. Magnetic force and electric force are also non-contact. Applied force and friction are contact forces (require touch).</div>
+  </div>
+</div>
+
+<script>
+const SAVE_KEY = 'evie_eog_progress';
+const LVL_XP = [0,0,100,250,500,800,1200,1700,2300,3000,4000];
+function loadP(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY));return d||dflt();}catch(e){return dflt();}}
+function dflt(){return{xp:0,level:1,badges:[],domainCorrect:{ps:0,ls:0,ess:0},domainTotal:{ps:0,ls:0,ess:0},battingStats:{atBats:0,hits:0,homeRuns:0},flashcardsMastered:0,lastVisit:null,dailyStreak:0,bossesDefeated:[],scratchPacks:0};}
+function saveP(p){localStorage.setItem(SAVE_KEY,JSON.stringify(p));}
+function calcLvl(xp){for(let i=LVL_XP.length-1;i>=1;i--){if(xp>=LVL_XP[i])return i;}return 1;}
+
+let frictionN = 4;
+let surfaceLabel = 'Grass Field';
+const qAnswered = {};
+
+function setSurface(id, friction) {
+  frictionN = friction;
+  surfaceLabel = {ice:'Ice Surface', grass:'Grass Field', carpet:'Carpet Surface'}[id];
+  document.querySelectorAll('.surface-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('surf-' + id).classList.add('active');
+  update();
+}
+
+function update() {
+  const applied = parseInt(document.getElementById('appliedSlider').value);
+  const friction = Math.min(frictionN, applied > 0 ? frictionN : 0); // Friction only acts if there's motion or applied force
+  const actualFriction = applied === 0 ? 0 : Math.min(frictionN, applied + 2); // Kinetic friction up to max
+  // Simplify: friction = min(frictionN, applied) for static, frictionN for kinetic
+  // If applied > frictionN: object moves, friction = frictionN
+  // If applied <= frictionN: object stays still (static friction matches applied), net = 0
+  const isMoving = applied > frictionN;
+  const effectiveFriction = isMoving ? frictionN : applied;
+  const net = applied - effectiveFriction;
+
+  document.getElementById('appliedLabel').textContent = applied + ' N';
+  document.getElementById('dispApplied').textContent = applied + ' N';
+  document.getElementById('dispFriction').textContent = effectiveFriction + ' N';
+  document.getElementById('dispNet').textContent = net + ' N';
+  document.getElementById('surfaceTex').textContent = surfaceLabel;
+
+  // Update SVG arrows
+  const ballX = 160;
+  const arrowY = 97;
+  const scale = 8; // pixels per N
+  const arrowApplied = document.getElementById('arrowApplied');
+  const arrowFriction = document.getElementById('arrowFriction');
+  const lblA = document.getElementById('lblApplied');
+  const lblF = document.getElementById('lblFriction');
+
+  if (applied > 0) {
+    const endX = Math.min(ballX + applied * scale, 285);
+    arrowApplied.setAttribute('x1', ballX + 20);
+    arrowApplied.setAttribute('y1', arrowY);
+    arrowApplied.setAttribute('x2', endX);
+    arrowApplied.setAttribute('y2', arrowY);
+    lblA.setAttribute('x', ballX + 20 + (endX - ballX - 20) / 2 - 10);
+    lblA.setAttribute('y', arrowY - 5);
+    lblA.textContent = applied + 'N →';
+    lblA.setAttribute('opacity', 1);
+  } else {
+    arrowApplied.setAttribute('x1', ballX);
+    arrowApplied.setAttribute('x2', ballX);
+    lblA.setAttribute('opacity', 0);
+  }
+
+  if (effectiveFriction > 0) {
+    const startX = Math.max(ballX - effectiveFriction * scale, 35);
+    arrowFriction.setAttribute('x1', ballX - 20);
+    arrowFriction.setAttribute('y1', arrowY + 6);
+    arrowFriction.setAttribute('x2', startX);
+    arrowFriction.setAttribute('y2', arrowY + 6);
+    lblF.setAttribute('x', startX + (ballX - 20 - startX) / 2 - 8);
+    lblF.setAttribute('y', arrowY + 18);
+    lblF.textContent = '← ' + effectiveFriction + 'N';
+    lblF.setAttribute('opacity', 1);
+  } else {
+    arrowFriction.setAttribute('x1', ballX);
+    arrowFriction.setAttribute('x2', ballX);
+    lblF.setAttribute('opacity', 0);
+  }
+
+  // Ball animation
+  const ball = document.getElementById('ball');
+  if (isMoving) {
+    ball.style.animation = 'none';
+    ball.style.left = '75%';
+    setTimeout(() => {
+      ball.style.animation = '';
+      ball.style.left = '75%';
+    }, 50);
+  } else if (applied === 0) {
+    ball.style.left = '50%';
+  } else {
+    // Applied but not enough to overcome friction
+    ball.style.left = '50%';
+  }
+
+  // Status
+  const banner = document.getElementById('statusBanner');
+  const motionCard = document.getElementById('motionCard');
+  if (net === 0) {
+    banner.className = 'status-banner balanced';
+    banner.textContent = '⚖️ BALANCED FORCES';
+    motionCard.className = 'motion-card balanced';
+    if (applied === 0) {
+      motionCard.textContent = '🟢 No forces applied — object remains at rest. (Or keeps moving at constant speed if already in motion.)';
+    } else {
+      motionCard.textContent = `🟢 Applied force (${applied}N) = Friction (${effectiveFriction}N). Net force = 0N. No change in motion! The object stays still or moves at constant speed. ⚖️`;
+    }
+  } else {
+    banner.className = 'status-banner unbalanced';
+    banner.textContent = `⚡ UNBALANCED! Net = ${net}N →`;
+    motionCard.className = 'motion-card unbalanced';
+    motionCard.textContent = `🔴 Applied force (${applied}N) > Friction (${effectiveFriction}N). Net force = ${net}N to the right. UNBALANCED → the object ACCELERATES (speeds up) to the right! ⚡`;
+  }
+}
+
+function loadScenario(applied, surface, friction) {
+  document.getElementById('appliedSlider').value = applied;
+  setSurface(surface, friction);
+}
+
+function qpick(qNum, idx, correct) {
+  if (qAnswered[qNum]) return;
+  qAnswered[qNum] = true;
+  const btns = document.getElementById('q' + qNum + 'opts').querySelectorAll('.qbtn');
+  btns.forEach(b => b.disabled = true);
+  btns[idx].classList.add(idx === correct ? 'correct' : 'wrong');
+  if (idx !== correct) btns[correct].classList.add('correct');
+  document.getElementById('qe' + qNum).style.display = 'block';
+  const p = loadP();
+  p.domainTotal.ps = (p.domainTotal.ps||0) + 1;
+  if (idx === correct) p.domainCorrect.ps = (p.domainCorrect.ps||0) + 1;
+  saveP(p);
+}
+
+// Init
+update();
+</script>
+</body>
+</html>

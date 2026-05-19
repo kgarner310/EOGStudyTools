@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EOG Practice Test 📝</title>
+<style>
+:root{--bg:#0f1923;--card:#1a2940;--card2:#1e3050;--green:#4ade80;--blue:#60a5fa;--coral:#f87171;--gold:#fbbf24;--purple:#a78bfa;--orange:#fb923c;--text:#e0f2fe;--muted:#94a3b8;--ps:#60a5fa;--ls:#4ade80;--ess:#fb923c;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.top-bar{background:#0d1a2e;border-bottom:1px solid #2a4a6f;padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50;}
+.back-btn{background:none;border:1px solid #2a4a6f;color:var(--muted);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:0.85rem;text-decoration:none;display:inline-block;}
+.back-btn:hover{border-color:var(--blue);color:var(--text);}
+.top-bar-title{flex:1;font-weight:700;font-size:1rem;}
+.timer-display{font-size:0.9rem;font-weight:700;color:var(--gold);padding:4px 10px;background:rgba(251,191,36,0.1);border-radius:8px;}
+.timer-display.warn{color:var(--coral);background:rgba(248,113,113,0.1);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.6;}}
+.progress-bar-wrap{height:4px;background:#0f2040;}
+.progress-bar-fill{height:4px;background:linear-gradient(90deg,var(--green),var(--blue));transition:width 0.3s;}
+
+/* Start screen */
+.start-screen{max-width:600px;margin:0 auto;padding:40px 20px;text-align:center;}
+.start-screen h1{font-size:2rem;margin-bottom:8px;}
+.start-screen p{color:var(--muted);margin-bottom:24px;line-height:1.6;}
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px;}
+.info-card{background:var(--card);border:1px solid #2a4a6f;border-radius:12px;padding:16px;text-align:center;}
+.info-val{font-size:1.4rem;font-weight:700;color:var(--gold);}
+.info-label{font-size:0.7rem;color:var(--muted);margin-top:2px;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 28px;border-radius:12px;border:none;font-size:1rem;font-weight:700;cursor:pointer;transition:transform 0.1s,box-shadow 0.1s;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.3);}
+.btn-primary{background:linear-gradient(135deg,var(--green),var(--blue));color:#0f1923;}
+.btn-secondary{background:var(--card);color:var(--text);border:1px solid #2a4a6f;}
+.timer-toggle{margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:10px;color:var(--muted);font-size:0.9rem;}
+.toggle{width:40px;height:22px;background:#2a4a6f;border-radius:11px;cursor:pointer;position:relative;transition:background 0.2s;}
+.toggle.on{background:var(--green);}
+.toggle::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left 0.2s;}
+.toggle.on::after{left:21px;}
+
+/* Question screen */
+.question-screen{max-width:700px;margin:0 auto;padding:20px;}
+.item-set-banner{background:linear-gradient(135deg,rgba(96,165,250,0.15),rgba(96,165,250,0.05));border:1px solid rgba(96,165,250,0.3);border-radius:12px;padding:16px;margin-bottom:16px;}
+.item-set-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--blue);margin-bottom:6px;font-weight:700;}
+.item-set-text{font-size:0.9rem;color:var(--text);line-height:1.6;}
+.q-number{font-size:0.75rem;color:var(--muted);margin-bottom:6px;}
+.domain-chip{display:inline-block;font-size:0.65rem;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:10px;margin-bottom:10px;}
+.domain-chip.ps{background:rgba(96,165,250,0.15);color:var(--ps);}
+.domain-chip.ls{background:rgba(74,222,128,0.15);color:var(--ls);}
+.domain-chip.ess{background:rgba(251,146,60,0.15);color:var(--ess);}
+.q-text{font-size:1.05rem;line-height:1.6;margin-bottom:20px;font-weight:500;}
+.options{display:flex;flex-direction:column;gap:10px;}
+.option{background:var(--card);border:2px solid #2a4a6f;border-radius:12px;padding:14px 16px;cursor:pointer;transition:border-color 0.15s,background 0.15s;display:flex;gap:12px;align-items:flex-start;text-align:left;}
+.option:hover{border-color:var(--blue);background:var(--card2);}
+.option.correct{border-color:var(--green);background:rgba(74,222,128,0.1);}
+.option.wrong{border-color:var(--coral);background:rgba(248,113,113,0.1);}
+.option.reveal{border-color:var(--green);background:rgba(74,222,128,0.08);}
+.option-letter{width:26px;height:26px;border-radius:50%;background:#2a4a6f;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;flex-shrink:0;margin-top:1px;}
+.option.correct .option-letter{background:var(--green);color:#0f1923;}
+.option.wrong .option-letter{background:var(--coral);color:#fff;}
+.option.reveal .option-letter{background:rgba(74,222,128,0.3);color:var(--green);}
+.option-text{font-size:0.95rem;line-height:1.4;}
+.explanation-box{margin-top:16px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);border-radius:12px;padding:16px;}
+.explanation-box.wrong-explain{background:rgba(248,113,113,0.06);border-color:rgba(248,113,113,0.25);}
+.explain-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--green);margin-bottom:6px;font-weight:700;}
+.explain-text{font-size:0.9rem;line-height:1.5;color:var(--text);}
+.xp-pop{font-size:0.75rem;color:var(--gold);margin-top:6px;}
+.next-btn-wrap{margin-top:20px;padding-bottom:30px;}
+
+/* Results screen */
+.results-screen{max-width:600px;margin:0 auto;padding:30px 20px;}
+.results-screen h1{font-size:1.8rem;text-align:center;margin-bottom:4px;}
+.score-display{text-align:center;margin:20px 0;}
+.score-circle{width:140px;height:140px;border-radius:50%;border:6px solid var(--green);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 12px;}
+.score-big{font-size:2.4rem;font-weight:800;color:var(--green);}
+.score-sub{font-size:0.75rem;color:var(--muted);}
+.result-msg{font-size:1rem;color:var(--muted);text-align:center;margin-bottom:24px;}
+.domain-results{background:var(--card);border:1px solid #2a4a6f;border-radius:16px;padding:20px;margin-bottom:20px;}
+.domain-results h3{font-size:0.8rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:16px;}
+.domain-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.domain-row-label{width:110px;font-size:0.85rem;flex-shrink:0;}
+.domain-row-bar{flex:1;height:12px;background:#0f2040;border-radius:6px;overflow:hidden;}
+.domain-row-fill{height:100%;border-radius:6px;}
+.domain-row-pct{font-size:0.8rem;color:var(--muted);width:38px;text-align:right;}
+.weak-tip{background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);border-radius:12px;padding:14px 16px;margin-bottom:16px;}
+.weak-tip-label{font-size:0.7rem;text-transform:uppercase;color:var(--coral);font-weight:700;margin-bottom:4px;}
+.xp-earned{text-align:center;font-size:1rem;color:var(--gold);font-weight:700;margin-bottom:16px;}
+.btn-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+</style>
+</head>
+<body>
+
+<div id="startScreen" class="start-screen" style="display:block">
+  <div style="font-size:3rem;margin-bottom:12px;">📝</div>
+  <h1>EOG Practice Test</h1>
+  <p>This test mirrors the real EOG — 44 questions across all three science domains. Questions are randomly selected each time, so every retake is fresh!</p>
+  <div class="info-grid">
+    <div class="info-card"><div class="info-val">44</div><div class="info-label">Questions</div></div>
+    <div class="info-card"><div class="info-val">3</div><div class="info-label">Domains</div></div>
+    <div class="info-card"><div class="info-val">+10</div><div class="info-label">XP per correct</div></div>
+  </div>
+  <div class="timer-toggle">
+    <span>120-min Timer</span>
+    <div class="toggle" id="timerToggle" onclick="this.classList.toggle('on')"></div>
+  </div>
+  <button class="btn btn-primary" onclick="startTest()">Start Test 🚀</button>
+  <div style="margin-top:12px;"><a href="index.html" class="back-btn">← Back to Hub</a></div>
+</div>
+
+<div id="quizScreen" style="display:none">
+  <div class="top-bar">
+    <a href="index.html" class="back-btn">🏠</a>
+    <div class="top-bar-title" id="qCounter">Question 1 of 44</div>
+    <div class="timer-display" id="timerEl" style="display:none">2:00:00</div>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+  </div>
+  <div class="question-screen">
+    <div class="item-set-banner" id="itemSetBanner" style="display:none">
+      <div class="item-set-label">📋 Reference Material — Use this for the following questions</div>
+      <div class="item-set-text" id="itemSetText"></div>
+    </div>
+    <div class="q-number" id="qNum"></div>
+    <div class="domain-chip" id="domainChip"></div>
+    <div class="q-text" id="qText"></div>
+    <div class="options" id="optionsDiv"></div>
+    <div id="explanationDiv" style="display:none"></div>
+    <div class="next-btn-wrap" id="nextBtnWrap" style="display:none">
+      <button class="btn btn-primary" onclick="nextQuestion()">Next Question →</button>
+    </div>
+  </div>
+</div>
+
+<div id="resultsScreen" style="display:none" class="results-screen">
+  <div style="font-size:2.5rem;text-align:center;margin-bottom:8px;" id="resultsEmoji">🎉</div>
+  <h1 id="resultsTitle">Test Complete!</h1>
+  <div class="score-display">
+    <div class="score-circle" id="scoreCircle">
+      <div class="score-big" id="scoreBig">0/44</div>
+      <div class="score-sub" id="scoreSub">Score</div>
+    </div>
+  </div>
+  <p class="result-msg" id="resultMsg"></p>
+  <div class="xp-earned" id="xpEarned"></div>
+  <div class="domain-results">
+    <h3>Domain Breakdown</h3>
+    <div class="domain-row">
+      <div class="domain-row-label">⚡ Physical Sci</div>
+      <div class="domain-row-bar"><div class="domain-row-fill" id="psResultBar" style="background:var(--ps)"></div></div>
+      <div class="domain-row-pct" id="psResultPct"></div>
+    </div>
+    <div class="domain-row">
+      <div class="domain-row-label">🌿 Life Science</div>
+      <div class="domain-row-bar"><div class="domain-row-fill" id="lsResultBar" style="background:var(--ls)"></div></div>
+      <div class="domain-row-pct" id="lsResultPct"></div>
+    </div>
+    <div class="domain-row">
+      <div class="domain-row-label">🌍 Earth &amp; Space</div>
+      <div class="domain-row-bar"><div class="domain-row-fill" id="essResultBar" style="background:var(--ess)"></div></div>
+      <div class="domain-row-pct" id="essResultPct"></div>
+    </div>
+  </div>
+  <div class="weak-tip" id="weakTip" style="display:none">
+    <div class="weak-tip-label">💡 Focus Area</div>
+    <div id="weakTipText"></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="restartTest()">Retake Test 🔄</button>
+    <a href="index.html" class="btn btn-secondary">Back to Hub 🏠</a>
+  </div>
+</div>
+
+<script>
+const SAVE_KEY = 'evie_eog_progress';
+const LEVEL_XP = [0,0,100,250,500,800,1200,1700,2300,3000,4000];
+function loadProgress(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));const d={xp:0,level:1,badges:[],domainCorrect:{ps:0,ls:0,ess:0},domainTotal:{ps:0,ls:0,ess:0},battingStats:{atBats:0,hits:0,homeRuns:0},flashcardsMastered:0,lastVisit:null,dailyStreak:0,bossesDefeated:[],scratchPacks:0};return s?Object.assign(d,s):d;}catch{return{xp:0,level:1,badges:[],domainCorrect:{ps:0,ls:0,ess:0},domainTotal:{ps:0,ls:0,ess:0},battingStats:{atBats:0,hits:0,homeRuns:0},flashcardsMastered:0,lastVisit:null,dailyStreak:0,bossesDefeated:[],scratchPacks:0};}}
+function saveProgress(p){localStorage.setItem(SAVE_KEY,JSON.stringify(p));}
+function calcLevel(xp){for(let i=LEVEL_XP.length-1;i>=1;i--){if(xp>=LEVEL_XP[i])return i;}return 1;}
+
+// ─── QUESTION BANK ───────────────────────────────────────────────
+const ITEM_SET_1 = {
+  id:'set1',
+  text:'A student is studying a grassland ecosystem. The food web shows the following relationships: Grass is eaten by Grasshoppers and Rabbits. Grasshoppers are eaten by Frogs. Frogs are eaten by Snakes. Snakes and Rabbits are eaten by Hawks. Bacteria and fungi break down all dead organisms in the ecosystem.',
+};
+const ITEM_SET_2 = {
+  id:'set2',
+  text:'A student tested four mystery materials (A, B, C, D) and recorded results in a table:\n• Material A: white crystals, dissolves in water, conducts electricity when dissolved\n• Material B: gray powder, does NOT dissolve in water, does NOT conduct electricity, attracted to a magnet\n• Material C: clear crystals, dissolves in water, does NOT conduct electricity\n• Material D: white solid, does NOT dissolve in water, melts at 100°C, floats on water',
+};
+
+const QUESTIONS = [
+  // PHYSICAL SCIENCE — Properties of Matter (PS.5.1.1)
+  {id:1,domain:'ps',std:'PS.5.1.1',q:'Which property of matter describes the amount of space an object takes up?',opts:['Mass','Volume','Density','Weight'],correct:1,exp:'Volume is the amount of 3D space an object occupies. Mass is the amount of matter in an object. Density is mass divided by volume. Weight is the force of gravity on an object.'},
+  {id:2,domain:'ps',std:'PS.5.1.1',q:'Two metal cubes are exactly the same size. One sinks in water and one floats. Which property best explains this difference?',opts:['Mass','Color','Density','Volume'],correct:2,exp:'Density = mass ÷ volume. Since both cubes are the same size (same volume), the difference must be in their mass — and therefore their density. Objects denser than water sink; less dense objects float.'},
+  {id:3,domain:'ps',std:'PS.5.1.1',q:'Which property would be MOST useful for separating iron filings from sand?',opts:['Density','Solubility','Color','Magnetism'],correct:3,exp:'Iron is magnetic; sand is not. A magnet would attract only the iron filings, leaving the sand behind — a quick and clean separation based on magnetic properties.'},
+  {id:4,domain:'ps',std:'PS.5.1.1',q:'Salt dissolves completely in water, but sand does not. This difference demonstrates which property?',opts:['Mass','Conductivity','Solubility','Hardness'],correct:2,exp:'Solubility describes how well a substance dissolves in another substance. Salt is highly soluble in water; sand is insoluble — it does not dissolve.'},
+  {id:5,domain:'ps',std:'PS.5.1.1',q:'Which of the following is a PHYSICAL property that can be observed WITHOUT changing the substance?',opts:['Flammability','Ability to rust','Color','Reactivity with acid'],correct:2,exp:'Color is observable without altering the substance — it\'s a physical property. Flammability, rusting, and acid reactivity all involve chemical changes that produce new substances.'},
+  // Physical vs Chemical Changes (PS.5.1.2)
+  {id:6,domain:'ps',std:'PS.5.1.2',q:'Which of the following is an example of a CHEMICAL change?',opts:['Cutting paper','Ice melting','Iron rusting','Breaking glass'],correct:2,exp:'Rusting produces iron oxide — a completely new substance with different properties than iron. The other examples change the shape or state of matter but don\'t create new substances.'},
+  {id:7,domain:'ps',std:'PS.5.1.2',q:'A student tears a piece of paper into small pieces. What type of change occurred?',opts:['Chemical','Physical','Nuclear','Biological'],correct:1,exp:'Tearing paper changes its shape and size, but it\'s still paper — no new substance was formed. Physical changes alter form without creating new substances.'},
+  {id:8,domain:'ps',std:'PS.5.1.2',q:'Which observation is the BEST clue that a chemical change has occurred?',opts:['The object changed shape','The object changed size','A new substance with a different smell was produced','The object was cut in half'],correct:2,exp:'Producing a new substance is the key sign of a chemical change. Clues include: new color, gas produced, new smell, heat or light released, or a substance that can\'t easily be reversed.'},
+  {id:9,domain:'ps',std:'PS.5.1.2',q:'Burning wood is a chemical change because...',opts:['The wood gets smaller','The wood changes temperature','New substances — ash, CO₂, and water vapor — are formed','The wood changes color'],correct:2,exp:'The defining feature of a chemical change is the formation of new substances. Burning creates ash, carbon dioxide, and water vapor — completely different from the original wood.'},
+  {id:10,domain:'ps',std:'PS.5.1.2',q:'Sugar dissolving in water is a PHYSICAL change because...',opts:['It releases a lot of heat','The sugar completely disappears','The sugar can be recovered by evaporating the water','A new substance forms'],correct:2,exp:'In a physical change, no new substance forms. Dissolved sugar can be recovered by evaporating the water — the sugar molecules are still sugar, just spread throughout the water.'},
+  // Mixtures and Solutions (PS.5.1.3)
+  {id:11,domain:'ps',std:'PS.5.1.3',q:'Which separation method would BEST separate gravel from water?',opts:['Evaporation','Magnetism','Filtration','Distillation'],correct:2,exp:'Filtration uses a filter to separate solid particles from liquids. Gravel particles are too large to pass through the filter, while water passes through easily.'},
+  {id:12,domain:'ps',std:'PS.5.1.3',q:'How is a SOLUTION different from a regular mixture?',opts:['A solution contains only one substance','In a solution, particles are evenly spread throughout','A solution can always be separated by filtration','Only water can be a solvent'],correct:1,exp:'A solution is a homogeneous mixture — the dissolved substance is spread out so evenly that you can\'t see individual parts. A heterogeneous mixture (like trail mix) has visible, uneven parts.'},
+  {id:13,domain:'ps',std:'PS.5.1.3',q:'Trail mix (nuts + raisins + seeds mixed together) is best described as a...',opts:['Solution','Pure substance','Compound','Mixture'],correct:3,exp:'Trail mix is a mixture because you can see and physically separate the individual parts. In a solution, the components are so evenly distributed you can\'t see or separate them by hand.'},
+  {id:14,domain:'ps',std:'PS.5.1.3',q:'A student wants to separate salt from saltwater. Which method would work best?',opts:['Filtration','Magnetism','Evaporation','Distillation'],correct:2,exp:'Salt dissolved in water forms a solution that can\'t be filtered (the salt particles are too small). Evaporation removes the water as vapor, leaving the salt crystals behind.'},
+  // Forces (PS.5.2.1)
+  {id:15,domain:'ps',std:'PS.5.2.1',q:'A ball rolls across the floor and gradually slows to a stop. Which force caused it to slow down?',opts:['Gravity','Magnetism','Friction','Applied force'],correct:2,exp:'Friction is the force that opposes motion between surfaces in contact. As the ball rolls across the floor, friction between the ball and floor surface acts against the ball\'s motion, slowing it down.'},
+  {id:16,domain:'ps',std:'PS.5.2.1',q:'Gravity and magnetism are examples of what type of forces?',opts:['Contact forces','Friction forces','Non-contact forces','Applied forces'],correct:2,exp:'Non-contact forces act between objects without them physically touching. Gravity pulls objects toward each other across empty space. Magnetism attracts or repels magnetic materials without contact.'},
+  {id:17,domain:'ps',std:'PS.5.2.1',q:'Which scenario BEST demonstrates magnetism?',opts:['A ball rolling down a hill','A book sliding across a table','A paper clip pulled toward a magnet from across the table','A skateboard stopping at a curb'],correct:2,exp:'Magnetism is the non-contact force of attraction or repulsion between magnetic materials. The paper clip is attracted to the magnet without them touching — a classic example of magnetic force.'},
+  {id:18,domain:'ps',std:'PS.5.2.1',q:'Which force always pulls objects toward the center of Earth?',opts:['Friction','Magnetism','Applied force','Gravity'],correct:3,exp:'Gravity is the non-contact attractive force between all objects with mass. Earth\'s gravity constantly pulls everything downward toward Earth\'s center. This is why things fall and why we stay on the ground.'},
+  // Balanced/Unbalanced Forces (PS.5.2.2)
+  {id:19,domain:'ps',std:'PS.5.2.2',q:'Two students push on opposite sides of a box with exactly equal force. The box does not move. The forces are...',opts:['Unbalanced','Applied in the same direction','Balanced','Zero'],correct:2,exp:'When equal forces act in opposite directions, they cancel each other out — the net force is zero. These are balanced forces. Balanced forces do NOT change an object\'s motion.'},
+  {id:20,domain:'ps',std:'PS.5.2.2',q:'Which situation shows UNBALANCED forces?',opts:['A book sitting still on a desk','A car traveling at constant speed on a straight highway','A soccer ball at rest that gets kicked and starts rolling','Two teams in a tied tug-of-war'],correct:2,exp:'Unbalanced forces cause a change in motion. When the ball is kicked, the applied force of the kick is greater than the other forces — so the ball accelerates (starts moving). That\'s unbalanced.'},
+  {id:21,domain:'ps',std:'PS.5.2.2',q:'A net force causes an object to...',opts:['Stay perfectly still','Move in a perfect circle','Change its motion (speed up, slow down, or change direction)','Float above the ground'],correct:2,exp:'A net force (unbalanced force) causes acceleration — a change in the object\'s motion. This can be speeding up, slowing down, or changing direction. Zero net force = no change in motion.'},
+
+  // LIFE SCIENCE — Cell Organelles (LS.5.1.1)
+  {id:22,domain:'ls',std:'LS.5.1.1',q:'Which organelle controls what enters and exits the cell?',opts:['Nucleus','Cell wall','Cell membrane','Vacuole'],correct:2,exp:'The cell membrane is the flexible outer boundary of all cells. It acts like a security guard — controlling which substances can pass in or out. It\'s found in BOTH plant and animal cells.'},
+  {id:23,domain:'ls',std:'LS.5.1.1',q:'Which organelle is found in plant cells but NOT in animal cells?',opts:['Nucleus','Mitochondria','Cell membrane','Chloroplast'],correct:3,exp:'Chloroplasts contain chlorophyll and perform photosynthesis — converting sunlight into glucose (food). Only organisms that make their own food (plants, algae) have chloroplasts. Animal cells don\'t photosynthesize.'},
+  {id:24,domain:'ls',std:'LS.5.1.1',q:'The "powerhouse of the cell" that produces energy is the...',opts:['Nucleus','Chloroplast','Mitochondria','Ribosome'],correct:2,exp:'Mitochondria convert glucose and oxygen into ATP (usable energy) through cellular respiration. Every active cell — plant or animal — needs mitochondria. More active cells (like muscle cells) have more mitochondria.'},
+  {id:25,domain:'ls',std:'LS.5.1.1',q:'Which organelle contains the cell\'s DNA and controls all cell activities?',opts:['Vacuole','Nucleus','Cytoplasm','Mitochondria'],correct:1,exp:'The nucleus is the control center of the cell. It contains DNA — the genetic instructions for everything the cell does, including how to grow, reproduce, and make proteins.'},
+  {id:26,domain:'ls',std:'LS.5.1.1',q:'Plant cells have a rigid outer covering that provides structure and support. This is called the...',opts:['Cell membrane','Vacuole','Cell wall','Nucleus'],correct:2,exp:'The cell wall is a stiff layer made of cellulose, found OUTSIDE the cell membrane in plant cells. It gives plants their rigid structure — that\'s why plants can stand upright without bones or muscles.'},
+  // Body Systems (LS.5.1.2)
+  {id:27,domain:'ls',std:'LS.5.1.2',q:'Which body system is responsible for delivering oxygen and nutrients to all body cells?',opts:['Digestive','Respiratory','Nervous','Circulatory'],correct:3,exp:'The circulatory system uses the heart, blood, and blood vessels to deliver oxygen and nutrients to every cell and remove waste products (like CO₂). It\'s the body\'s delivery highway.'},
+  {id:28,domain:'ls',std:'LS.5.1.2',q:'The skeletal and muscular systems work together to...',opts:['Break down food','Allow movement and locomotion','Filter blood','Control breathing rate'],correct:1,exp:'Muscles are attached to bones by tendons. When muscles contract, they pull on bones and cause movement. The skeleton provides the rigid framework that muscles need to create motion.'},
+  {id:29,domain:'ls',std:'LS.5.1.2',q:'When you exercise hard, your breathing rate increases. Which two systems are working together?',opts:['Skeletal and digestive','Nervous and skeletal','Circulatory and respiratory','Digestive and muscular'],correct:2,exp:'During exercise, muscles need more oxygen and produce more CO₂. The respiratory system breathes faster to bring in more O₂, while the circulatory system pumps blood faster to deliver it. They always work as a team.'},
+  {id:30,domain:'ls',std:'LS.5.1.2',q:'Which body system breaks food into small nutrients the body can absorb and use?',opts:['Circulatory','Respiratory','Digestive','Skeletal'],correct:2,exp:'The digestive system breaks food into small nutrient molecules through mechanical (chewing) and chemical (enzymes) processes. These nutrients are then absorbed into the blood and delivered to cells.'},
+  // Biotic and Abiotic (LS.5.2.1)
+  {id:31,domain:'ls',std:'LS.5.2.1',q:'Which of the following is an ABIOTIC factor in an ecosystem?',opts:['Bacteria in the soil','Sunlight reaching the forest floor','Deer eating plants','Oak tree producing acorns'],correct:1,exp:'Abiotic factors are non-living parts of an ecosystem. Sunlight, water, temperature, soil minerals, and air are all abiotic. Bacteria, deer, and oak trees are living organisms — they\'re biotic.'},
+  {id:32,domain:'ls',std:'LS.5.2.1',q:'A student lists factors in a pond: fish, algae, rocks, water, sunlight, frogs. Which are BIOTIC factors?',opts:['Rocks and water','Fish, algae, and frogs','Sunlight and rocks','Water and sunlight'],correct:1,exp:'Biotic means living. Fish, algae, and frogs are all living organisms. Rocks, water, and sunlight are non-living (abiotic). Remember: bio = life!'},
+  {id:33,domain:'ls',std:'LS.5.2.1',q:'A cactus has thick stems, waxy skin, and shallow widespread roots. Which abiotic factor most influenced these adaptations?',opts:['Predators in the desert','Decomposers in the soil','Other plants nearby','Limited water availability'],correct:3,exp:'The desert\'s abiotic condition of very little water shaped the cactus\'s adaptations over generations — thick stems store water, waxy skin reduces water loss, and shallow roots collect rain quickly.'},
+  // Food Webs (LS.5.2.2)
+  {id:34,domain:'ls',std:'LS.5.2.2',q:'In the food chain Grass → Grasshopper → Frog → Hawk, what is the grasshopper\'s role?',opts:['Producer','Primary consumer','Secondary consumer','Decomposer'],correct:1,exp:'The grasshopper eats grass (a producer), making it a primary consumer — first level of consumers. Frogs are secondary consumers (they eat primary consumers). Hawks are tertiary consumers.'},
+  {id:35,domain:'ls',std:'LS.5.2.2',q:'What do producers use to make their own food through photosynthesis?',opts:['Other organisms','Sunlight, water, and carbon dioxide','Soil and minerals only','Oxygen and nitrogen'],correct:1,exp:'Producers (plants, algae, some bacteria) perform photosynthesis: sunlight + water + CO₂ → glucose + oxygen. They\'re the foundation of every food web — converting solar energy into biological energy.'},
+  {id:36,domain:'ls',std:'LS.5.2.2',q:'What is the role of decomposers in an ecosystem?',opts:['They make food from sunlight','They hunt other animals','They break down dead organisms and return nutrients to the soil','They convert sunlight into oxygen'],correct:2,exp:'Decomposers (fungi, bacteria) break down dead organisms and waste, releasing nutrients back into the soil. Without decomposers, nutrients would be locked in dead material and unavailable to producers — the cycle would stop.'},
+  {id:37,domain:'ls',std:'LS.5.2.2',q:'In a food web, energy flows from...',opts:['Consumers back to producers','Decomposers upward to consumers','Sun → Producers → Consumers','Animals to plants'],correct:2,exp:'Energy enters ecosystems from the sun, is captured by producers through photosynthesis, and then flows to consumers when they eat. At each level, about 90% of energy is lost as heat — only ~10% passes on.'},
+  // Ecosystem Changes (LS.5.2.3)
+  {id:38,domain:'ls',std:'LS.5.2.3',q:'An invasive snake species was released on an island and ate most of the small birds. What would MOST LIKELY happen to the insect population that birds used to eat?',opts:['Insects decrease because snakes eat insects too','Insects increase because fewer birds are eating them','Insects stay the same — snakes have no effect','All insects would immediately go extinct'],correct:1,exp:'With fewer birds (predators), the insects they used to eat would have less predation pressure — so the insect population would likely grow. This chain reaction is called a trophic cascade.'},
+  {id:39,domain:'ls',std:'LS.5.2.3',q:'A drought severely reduces plant life in a grassland. Which group would be affected FIRST?',opts:['Carnivores','Decomposers','Omnivores','Herbivores'],correct:3,exp:'Herbivores eat plants directly, so they\'d lose their food source first. Then carnivores (which eat herbivores) would be affected next. Decomposers would be affected last since they\'re not dependent on living plants.'},
+  {id:40,domain:'ls',std:'LS.5.2.3',q:'A forest is cleared for new buildings. Which concept BEST describes what happened to the animals that lived there?',opts:['Adaptation','Predation','Habitat destruction','Natural selection'],correct:2,exp:'Habitat destruction occurs when natural ecosystems are removed or degraded. Animals lose their shelter, food sources, water access, and breeding grounds — forcing them to find new habitat or face population decline.'},
+  // Inherited Traits (LS.5.3.1)
+  {id:41,domain:'ls',std:'LS.5.3.1',q:'Which of the following is an INHERITED trait?',opts:['Playing piano well','Speaking two languages','Having blue eyes','Being able to ride a bike'],correct:2,exp:'Eye color is determined by genes inherited from parents — it\'s written in your DNA. Piano, languages, and bike riding are all learned behaviors that require practice and experience, not genetics.'},
+  {id:42,domain:'ls',std:'LS.5.3.1',q:'A dog learned to sit when its owner says "sit." This behavior is best described as...',opts:['An inherited trait from its parents','A learned behavior from training','A genetic mutation','An instinct'],correct:1,exp:'Responding to commands requires training — the dog learned this through repeated experience. Learned behaviors are acquired through interaction with the environment, not through genes.'},
+  {id:43,domain:'ls',std:'LS.5.3.1',q:'Which characteristic is ACQUIRED (not inherited)?',opts:['Blood type','Eye color','Natural hair texture','A scar from a bicycle fall'],correct:3,exp:'A scar results from an event that happened after birth — it cannot be passed down through genes. Blood type, eye color, and hair texture are all determined by DNA inherited from parents.'},
+  {id:44,domain:'ls',std:'LS.5.3.1',q:'A parent has curly hair. Their child also has curly hair. The child\'s curly hair is best described as...',opts:['A learned behavior','An acquired characteristic','An inherited trait','A result of the child\'s diet'],correct:2,exp:'Hair texture is genetically determined and passed from parents to offspring through DNA. It\'s an inherited trait — not something the child learned or developed from experience.'},
+  // Trait Variation (LS.5.3.2)
+  {id:45,domain:'ls',std:'LS.5.3.2',q:'In a population of mice, some are dark brown and some are light tan. On dark soil, hawks can\'t see the dark mice easily. Over many generations, the population becomes mostly dark brown. This is an example of...',opts:['A learned behavior','Habitat destruction','Natural selection','Acquired characteristics'],correct:2,exp:'Natural selection: organisms with traits better suited to their environment survive and reproduce more. Dark color gave mice a survival advantage (camouflage from hawks), so that trait became more common over time.'},
+  {id:46,domain:'ls',std:'LS.5.3.2',q:'Why do offspring look similar to, but not identical to, their parents?',opts:['They inherit a unique mix of traits from both parents','They develop new traits from the environment','They are technically a different species','They inherited genes only from one parent'],correct:0,exp:'Offspring inherit genes from BOTH parents, creating unique gene combinations. That\'s why you look like your parents but aren\'t identical to either one — you got a random mix of genes from both.'},
+  {id:47,domain:'ls',std:'LS.5.3.2',q:'Which trait variation within a population would MOST LIKELY help some individuals survive a cold winter?',opts:['Having a louder call','Being able to change color','Having a thicker coat of fur','Being taller than average'],correct:2,exp:'Thicker fur provides better insulation in cold temperatures — a clear survival advantage during a cold winter. Individuals with thicker fur would be more likely to survive and pass this trait to their offspring.'},
+
+  // EARTH & SPACE SCIENCE — Water Cycle (ESS.5.1.1)
+  {id:48,domain:'ess',std:'ESS.5.1.1',q:'Water vapor cools and forms liquid water droplets that make up clouds. This process is called...',opts:['Evaporation','Precipitation','Condensation','Runoff'],correct:2,exp:'Condensation is the change from gas to liquid. When warm, moist air rises and cools, water vapor condenses into tiny liquid droplets that form clouds. This is the same process that fogs up a cold glass.'},
+  {id:49,domain:'ess',std:'ESS.5.1.1',q:'The energy that drives the water cycle primarily comes from...',opts:['Wind patterns','The Moon\'s gravity','The Sun\'s heat','Tidal forces'],correct:2,exp:'The sun\'s energy heats water in oceans, lakes, and rivers, causing evaporation. Without solar energy, water wouldn\'t evaporate and the entire water cycle would shut down. The sun is the engine of the cycle.'},
+  {id:50,domain:'ess',std:'ESS.5.1.1',q:'Which process releases water vapor from plants into the atmosphere?',opts:['Runoff','Infiltration','Evaporation','Transpiration'],correct:3,exp:'Transpiration is a process where plants release water vapor through tiny pores called stomata (mainly in leaves). Plants absorb water through roots and release much of it as vapor — a significant part of the water cycle.'},
+  {id:51,domain:'ess',std:'ESS.5.1.1',q:'After heavy rain, water flows along Earth\'s surface into streams and rivers. This water movement is called...',opts:['Transpiration','Condensation','Evaporation','Runoff'],correct:3,exp:'Runoff is precipitation that doesn\'t soak into the ground. It flows along the surface, collecting in streams, rivers, and eventually oceans. It\'s an important way water returns to large bodies of water.'},
+  // Rock Cycle (ESS.5.1.2)
+  {id:52,domain:'ess',std:'ESS.5.1.2',q:'Which type of rock forms when magma or lava cools and hardens?',opts:['Sedimentary','Metamorphic','Igneous','Compacted'],correct:2,exp:'Igneous rock forms from cooled magma (underground) or lava (at the surface). Granite forms slowly underground (large crystals). Basalt and obsidian form quickly from lava (small crystals or glassy texture).'},
+  {id:53,domain:'ess',std:'ESS.5.1.2',q:'Fossils are most commonly found in which type of rock?',opts:['Igneous','Metamorphic','Sedimentary','Granite'],correct:2,exp:'Sedimentary rock forms in layers from compressed sediment, and organisms can be buried and preserved in those layers as fossils. Igneous rock\'s high heat and metamorphic rock\'s heat+pressure would destroy fossils.'},
+  {id:54,domain:'ess',std:'ESS.5.1.2',q:'Wind, water, and ice breaking rocks into smaller pieces is called...',opts:['Erosion','Deposition','Weathering','Compaction'],correct:2,exp:'Weathering is the breaking down of rocks in place — it\'s the "breaking" step. Erosion is when those broken pieces are MOVED by wind or water. Deposition is when they SETTLE in a new location.'},
+  {id:55,domain:'ess',std:'ESS.5.1.2',q:'Rocks changed by extreme heat and pressure deep in the Earth (without melting) are called...',opts:['Igneous','Sedimentary','Metamorphic','Minerals'],correct:2,exp:'Metamorphic rocks form when existing rocks are squeezed and heated deep underground — but don\'t fully melt. Marble forms from limestone; quartzite forms from sandstone; slate forms from shale.'},
+  // Earth's Layers (ESS.5.1.3)
+  {id:56,domain:'ess',std:'ESS.5.1.3',q:'Which layer of Earth is liquid and generates Earth\'s magnetic field?',opts:['Inner core','Crust','Mantle','Outer core'],correct:3,exp:'The outer core is liquid iron and nickel. Movement of this electrically-conducting liquid creates Earth\'s magnetic field, which extends into space and protects us from harmful solar radiation.'},
+  {id:57,domain:'ess',std:'ESS.5.1.3',q:'The thin rocky layer that we live on is Earth\'s...',opts:['Mantle','Outer core','Inner core','Crust'],correct:3,exp:'The crust is Earth\'s outermost, thinnest layer — only 5-70 km thick. Oceanic crust (under oceans) is thinner and denser; continental crust (under land) is thicker and less dense. We live on the continental crust.'},
+  {id:58,domain:'ess',std:'ESS.5.1.3',q:'Which layer makes up the largest portion of Earth\'s volume?',opts:['Crust','Mantle','Outer core','Inner core'],correct:1,exp:'The mantle is Earth\'s thickest layer — about 2,900 km thick and makes up ~84% of Earth\'s volume. It\'s made of semi-solid rock that can flow very slowly over millions of years, driving plate movement.'},
+  // Weather vs Climate (ESS.5.1.4)
+  {id:59,domain:'ess',std:'ESS.5.1.4',q:'"The average July temperature in North Carolina is about 88°F" is a statement about...',opts:['Weather','A weather event','Climate','A storm system'],correct:2,exp:'Climate describes the typical, average weather patterns for a region over many years. This statement describes what\'s USUALLY true in NC in July — that\'s climate, not today\'s specific weather.'},
+  {id:60,domain:'ess',std:'ESS.5.1.4',q:'A meteorologist says, "Expect cloudy skies and a 70% chance of rain tomorrow." This is a...',opts:['Climate description','Weather forecast','Long-term climate pattern','Ocean current prediction'],correct:1,exp:'A weather forecast describes expected atmospheric conditions in the near future — temperature, clouds, precipitation, wind. Weather is short-term and local; climate is long-term and regional.'},
+  {id:61,domain:'ess',std:'ESS.5.1.4',q:'Which factors most directly influence whether an area receives a lot of precipitation?',opts:['Soil type and rock type','Animal population and plant cover','Air pressure and humidity levels','Ocean depth and river flow'],correct:2,exp:'High humidity (water vapor in the air) combined with falling air pressure creates conditions for precipitation. These atmospheric factors directly determine how much rain or snow an area receives.'},
+
+  // ─── ITEM SET 1 (Grassland Food Web) ───
+  {id:62,domain:'ls',std:'LS.5.2.2',itemSet:'set1',q:'According to the grassland food web described, which organisms are producers?',opts:['Grasshoppers and rabbits','Frogs and snakes','Grass only','Bacteria and fungi'],correct:2,exp:'Producers make their own food through photosynthesis. In this ecosystem, only grass is a producer — it captures energy from the sun. All other organisms are consumers or decomposers.'},
+  {id:63,domain:'ls',std:'LS.5.2.3',itemSet:'set1',q:'If all the frogs disappeared from this ecosystem, which would MOST LIKELY happen?',opts:['Grass population decreases','Grasshopper population increases','Hawk population greatly increases','Snake population decreases'],correct:1,exp:'Frogs eat grasshoppers. With fewer frogs (predators), grasshoppers (prey) would face less predation and their population would likely grow. This is a trophic cascade — a change at one level ripples through the food web.'},
+  {id:64,domain:'ls',std:'LS.5.2.2',itemSet:'set1',q:'What is the role of the bacteria and fungi in this grassland ecosystem?',opts:['They produce energy from sunlight','They hunt snakes and hawks','They break down dead organisms and recycle nutrients into the soil','They compete with grass for sunlight'],correct:2,exp:'Bacteria and fungi are decomposers. They break down dead organisms, returning their nutrients to the soil where producers (like grass) can absorb them. Without decomposers, nutrients would be locked in dead material forever.'},
+  {id:65,domain:'ls',std:'LS.5.2.2',itemSet:'set1',q:'Which organism in this food web receives the MOST energy overall?',opts:['Hawk','Snake','Grass','Frog'],correct:2,exp:'Grass receives energy directly from the sun through photosynthesis — the original source of all energy in the food web. At each level, ~90% of energy is lost as heat, so the farther from the producers, the less energy is available.'},
+  // ─── ITEM SET 2 (Properties Data Table) ───
+  {id:66,domain:'ps',std:'PS.5.1.3',itemSet:'set2',q:'A student wants to separate Material B from a water mixture. Which method would work BEST?',opts:['Evaporation','A magnet','Filtration','Distillation'],correct:1,exp:'Material B is attracted to a magnet (magnetic property) and does NOT dissolve in water. Using a magnet would pull Material B out of the water — separating it easily based on its magnetic property.'},
+  {id:67,domain:'ps',std:'PS.5.1.1',itemSet:'set2',q:'Material A and Material C both dissolve in water. What test would BEST tell them apart?',opts:['Measure their volume','Test whether they conduct electricity when dissolved','See if they are attracted to a magnet','Compare their colors'],correct:1,exp:'Material A conducts electricity when dissolved; Material C does NOT. This is the only property listed that differs between them. Testing electrical conductivity would clearly distinguish them.'},
+  {id:68,domain:'ps',std:'PS.5.1.2',itemSet:'set2',q:'A student heats Material D to exactly 100°C. What would MOST LIKELY happen?',opts:['Material D dissolves and conducts electricity','Material D sinks to the bottom of the container','Material D melts because its melting point is 100°C','Material D becomes magnetic when heated'],correct:2,exp:'Material D has a melting point of 100°C. When heated to that temperature, it would reach its melting point and change from solid to liquid — a physical change, since the substance itself doesn\'t change, only its state.'},
+];
+
+// ─── QUIZ LOGIC ──────────────────────────────────────────────────
+let selectedQuestions = [];
+let currentIndex = 0;
+let score = 0;
+let domainScores = {ps:{c:0,t:0}, ls:{c:0,t:0}, ess:{c:0,t:0}};
+let xpEarned = 0;
+let answered = false;
+let timerInterval = null;
+let timerSeconds = 0;
+let useTimer = false;
+
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function selectQuestions() {
+  // Separate item set questions and standalone
+  const set1Qs = QUESTIONS.filter(q=>q.itemSet==='set1');
+  const set2Qs = QUESTIONS.filter(q=>q.itemSet==='set2');
+  const standalone = shuffle(QUESTIONS.filter(q=>!q.itemSet));
+
+  // Target: ~15 PS, ~21 LS, ~8 ESS = 44 total (including 4 item set questions)
+  const psStandalone = shuffle(standalone.filter(q=>q.domain==='ps')).slice(0,11);
+  const lsStandalone = shuffle(standalone.filter(q=>q.domain==='ls')).slice(0,17);
+  const essStandalone = shuffle(standalone.filter(q=>q.domain==='ess')).slice(0,8);
+
+  // Mark item sets specially
+  const set1Group = set1Qs.map(q=>({...q, _setData:ITEM_SET_1}));
+  const set2Group = set2Qs.map(q=>({...q, _setData:ITEM_SET_2}));
+
+  // Combine and shuffle standalone, then insert item sets in middle
+  const allStandalone = shuffle([...psStandalone, ...lsStandalone, ...essStandalone]);
+  const midpoint = Math.floor(allStandalone.length / 2);
+  const result = [
+    ...allStandalone.slice(0, 10),
+    ...set1Group,
+    ...allStandalone.slice(10, 20),
+    ...set2Group,
+    ...allStandalone.slice(20)
+  ];
+  return result.slice(0, 44);
+}
+
+function startTest() {
+  useTimer = document.getElementById('timerToggle').classList.contains('on');
+  selectedQuestions = selectQuestions();
+  currentIndex = 0; score = 0; xpEarned = 0;
+  domainScores = {ps:{c:0,t:0}, ls:{c:0,t:0}, ess:{c:0,t:0}};
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
+  if (useTimer) {
+    timerSeconds = 7200;
+    document.getElementById('timerEl').style.display = 'block';
+    timerInterval = setInterval(tickTimer, 1000);
+  }
+  showQuestion();
+}
+
+function tickTimer() {
+  timerSeconds--;
+  const h = Math.floor(timerSeconds/3600);
+  const m = Math.floor((timerSeconds%3600)/60);
+  const s = timerSeconds%60;
+  const el = document.getElementById('timerEl');
+  el.textContent = `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  if (timerSeconds <= 300) el.classList.add('warn');
+  if (timerSeconds <= 0) { clearInterval(timerInterval); showResults(); }
+}
+
+function showQuestion() {
+  const q = selectedQuestions[currentIndex];
+  answered = false;
+
+  // Update progress
+  document.getElementById('qCounter').textContent = `Question ${currentIndex+1} of ${selectedQuestions.length}`;
+  document.getElementById('progressFill').style.width = ((currentIndex/selectedQuestions.length)*100)+'%';
+  document.getElementById('qNum').textContent = `Q${currentIndex+1}`;
+  document.getElementById('nextBtnWrap').style.display = 'none';
+  document.getElementById('explanationDiv').style.display = 'none';
+
+  // Item set banner
+  const banner = document.getElementById('itemSetBanner');
+  if (q._setData) {
+    // Check if this is the first question of this set
+    const prev = currentIndex > 0 ? selectedQuestions[currentIndex-1] : null;
+    if (!prev || prev._setData?.id !== q._setData.id) {
+      banner.style.display = 'block';
+      document.getElementById('itemSetText').textContent = q._setData.text;
+    } else {
+      banner.style.display = 'block'; // Keep visible for the whole set
+    }
+  } else {
+    banner.style.display = 'none';
+  }
+
+  // Domain chip
+  const chip = document.getElementById('domainChip');
+  const labels = {ps:'⚡ Physical Science', ls:'🌿 Life Science', ess:'🌍 Earth & Space Science'};
+  chip.textContent = labels[q.domain];
+  chip.className = 'domain-chip ' + q.domain;
+
+  document.getElementById('qText').textContent = q.q;
+
+  const letters = ['A','B','C','D'];
+  document.getElementById('optionsDiv').innerHTML = q.opts.map((opt,i) =>
+    `<div class="option" onclick="selectAnswer(${i})" data-i="${i}">
+      <div class="option-letter">${letters[i]}</div>
+      <div class="option-text">${opt}</div>
+    </div>`
+  ).join('');
+}
+
+function selectAnswer(i) {
+  if (answered) return;
+  answered = true;
+  const q = selectedQuestions[currentIndex];
+  const opts = document.querySelectorAll('.option');
+
+  if (i === q.correct) {
+    opts[i].classList.add('correct');
+    score++;
+    domainScores[q.domain].c++;
+    xpEarned += 10;
+    const exp = document.getElementById('explanationDiv');
+    exp.style.display = 'block';
+    exp.innerHTML = `<div class="explanation-box"><div class="explain-label">✅ Correct!</div><div class="explain-text">${q.exp}</div><div class="xp-pop">+10 XP earned!</div></div>`;
+  } else {
+    opts[i].classList.add('wrong');
+    opts[q.correct].classList.add('reveal');
+    const exp = document.getElementById('explanationDiv');
+    exp.style.display = 'block';
+    exp.innerHTML = `<div class="explanation-box wrong-explain"><div class="explain-label">❌ Not quite — the answer is ${['A','B','C','D'][q.correct]}</div><div class="explain-text">${q.exp}</div></div>`;
+  }
+  domainScores[q.domain].t++;
+
+  // Disable all options
+  opts.forEach(o => o.style.pointerEvents = 'none');
+  document.getElementById('nextBtnWrap').style.display = 'block';
+}
+
+function nextQuestion() {
+  currentIndex++;
+  if (currentIndex >= selectedQuestions.length) showResults();
+  else showQuestion();
+}
+
+function showResults() {
+  if (timerInterval) clearInterval(timerInterval);
+  document.getElementById('quizScreen').style.display = 'none';
+  document.getElementById('resultsScreen').style.display = 'block';
+
+  const total = selectedQuestions.length;
+  const pct = Math.round((score/total)*100);
+
+  let emoji='🎉', title='Test Complete!';
+  if(pct>=90){emoji='🏆';title='Outstanding! You crushed it!';}
+  else if(pct>=75){emoji='⭐';title='Great job — almost there!';}
+  else if(pct>=60){emoji='💪';title='Good effort — keep practicing!';}
+  else{emoji='🔥';title='Keep studying — you\'ve got this!';}
+
+  document.getElementById('resultsEmoji').textContent = emoji;
+  document.getElementById('resultsTitle').textContent = title;
+
+  const circle = document.getElementById('scoreCircle');
+  circle.style.borderColor = pct>=75?'var(--green)':pct>=60?'var(--gold)':'var(--coral)';
+  document.getElementById('scoreBig').textContent = `${score}/${total}`;
+  document.getElementById('scoreBig').style.color = pct>=75?'var(--green)':pct>=60?'var(--gold)':'var(--coral)';
+  document.getElementById('scoreSub').textContent = `${pct}%`;
+
+  const msgs = {90:'Amazing work! You really understand this material!',75:'You\'re close to acing it — a bit more practice and you\'ll be there!',60:'Good progress! Review the domains below and try again.',0:'Keep going! Every question you learn from makes you stronger.'};
+  const msgKey = pct>=90?90:pct>=75?75:pct>=60?60:0;
+  document.getElementById('resultMsg').textContent = msgs[msgKey];
+  document.getElementById('xpEarned').textContent = `+${xpEarned} XP earned this test!`;
+
+  // Domain bars
+  ['ps','ls','ess'].forEach(d=>{
+    const {c,t} = domainScores[d];
+    const dp = t>0?Math.round((c/t)*100):0;
+    document.getElementById(d+'ResultBar').style.width=dp+'%';
+    document.getElementById(d+'ResultPct').textContent=`${c}/${t}`;
+  });
+
+  // Weak tip
+  const weakest = ['ps','ls','ess'].filter(d=>domainScores[d].t>0)
+    .sort((a,b)=>{
+      const pa=domainScores[a].t>0?domainScores[a].c/domainScores[a].t:1;
+      const pb=domainScores[b].t>0?domainScores[b].c/domainScores[b].t:1;
+      return pa-pb;
+    })[0];
+  if(weakest){
+    const names={ps:'Physical Science',ls:'Life Science',ess:'Earth & Space Science'};
+    const tools={ps:'Try the Matter Sorter or Forces Lab next!',ls:'Try the Food Web Builder or Boss Battle!',ess:'Try the Water Cycle Journey or Flashcards!'};
+    document.getElementById('weakTip').style.display='block';
+    document.getElementById('weakTipText').textContent=`Your weakest area was ${names[weakest]}. ${tools[weakest]}`;
+  }
+
+  // Save progress
+  const p = loadProgress();
+  p.xp += xpEarned;
+  ['ps','ls','ess'].forEach(d=>{
+    p.domainCorrect[d] = (p.domainCorrect[d]||0) + domainScores[d].c;
+    p.domainTotal[d] = (p.domainTotal[d]||0) + domainScores[d].t;
+  });
+  if(pct===100 && !p.badges.includes('perfect_quiz')) p.badges.push('perfect_quiz');
+  saveProgress(p);
+}
+
+function restartTest() {
+  document.getElementById('resultsScreen').style.display = 'none';
+  document.getElementById('startScreen').style.display = 'block';
+}
+</script>
+</body>
+</html>

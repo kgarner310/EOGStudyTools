@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Speed Trivia ⚡</title>
+<style>
+:root {
+  --bg: #0f1923; --card: #1a2940; --card2: #1e3050;
+  --green: #4ade80; --blue: #60a5fa; --coral: #f87171;
+  --gold: #fbbf24; --purple: #a78bfa; --orange: #fb923c;
+  --text: #e0f2fe; --muted: #94a3b8; --r: 16px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── LOBBY ── */
+.lobby { padding: 0 0 80px; }
+.lobby-header {
+  background: linear-gradient(135deg, #0f3460, #16213e, #0f1923);
+  padding: 28px 20px 22px; text-align: center;
+  border-bottom: 2px solid #1e3a5f;
+}
+.lobby-header h1 { font-size: 2rem; margin-bottom: 4px; }
+.lobby-header p { color: var(--muted); font-size: 0.9rem; }
+.section-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.domain-cards { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.dom-card {
+  background: var(--card); border-radius: var(--r);
+  padding: 18px 20px; border: 2px solid #2a4a6f;
+  cursor: pointer; transition: all 0.18s;
+  display: flex; align-items: center; gap: 14px;
+}
+.dom-card:active { transform: scale(0.97); }
+.dom-card.all-dom { border-color: var(--purple); }
+.dom-card.ps-dom { border-color: var(--blue); }
+.dom-card.ls-dom { border-color: var(--green); }
+.dom-card.ess-dom { border-color: var(--orange); }
+.dom-icon { font-size: 2rem; }
+.dom-info h3 { font-size: 1.05rem; margin-bottom: 2px; }
+.dom-info p { font-size: 0.8rem; color: var(--muted); }
+.dom-hs { margin-left: auto; text-align: right; }
+.hs-val { font-size: 1.1rem; font-weight: 700; color: var(--gold); }
+.hs-lbl { font-size: 0.65rem; color: var(--muted); }
+.back-hub { display: block; margin: 0 20px; padding: 14px; text-align: center; background: var(--card); border-radius: var(--r); color: var(--muted); text-decoration: none; font-weight: 600; }
+
+/* ── GAME ── */
+.game-screen { display: none; min-height: 100vh; }
+.game-header {
+  padding: 12px 16px; display: flex; align-items: center;
+  justify-content: space-between; background: var(--card);
+  border-bottom: 1px solid #1e3a5f;
+}
+.q-counter { font-size: 0.85rem; color: var(--muted); }
+.score-display { font-size: 1rem; font-weight: 700; color: var(--gold); }
+.streak-display {
+  font-size: 0.8rem; font-weight: 700; color: var(--orange);
+  background: rgba(251,146,60,.15); padding: 3px 9px; border-radius: 10px;
+}
+
+/* Timer */
+.timer-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 16px 20px 8px;
+}
+.timer-ring { position: relative; width: 70px; height: 70px; }
+.timer-ring svg { transform: rotate(-90deg); }
+.timer-bg { fill: none; stroke: #1e3050; stroke-width: 5; }
+.timer-arc {
+  fill: none; stroke-width: 5; stroke-linecap: round;
+  stroke-dasharray: 188.5;
+  transition: stroke-dashoffset 1s linear, stroke 0.3s;
+}
+.timer-num {
+  position: absolute; inset: 0; display: flex;
+  align-items: center; justify-content: center;
+  font-size: 1.4rem; font-weight: 800;
+}
+.timer-num.urgent { color: var(--coral); }
+
+.q-area { padding: 0 16px 12px; }
+.streak-bar {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 10px;
+}
+.streak-label { font-size: 0.75rem; color: var(--muted); }
+.streak-dots { display: flex; gap: 5px; }
+.sdot { width: 10px; height: 10px; border-radius: 50%; background: #2a4a6f; transition: all 0.3s; }
+.sdot.lit { background: var(--orange); box-shadow: 0 0 8px var(--orange); }
+.multiplier-badge {
+  margin-left: auto; font-size: 0.8rem; font-weight: 700;
+  color: var(--orange); background: rgba(251,146,60,.15);
+  padding: 2px 8px; border-radius: 10px;
+}
+
+.q-card {
+  background: var(--card2); border-radius: var(--r);
+  padding: 18px 16px; margin-bottom: 12px;
+  border: 1px solid #2a4a6f; min-height: 90px;
+  display: flex; align-items: center;
+}
+.q-txt { font-size: 1.05rem; line-height: 1.5; font-weight: 600; }
+.answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ans-btn {
+  padding: 14px 10px; border-radius: 14px;
+  background: var(--card); border: 2px solid #2a4a6f;
+  color: var(--text); font-size: 0.88rem; font-weight: 600;
+  cursor: pointer; text-align: center; transition: all 0.18s;
+  min-height: 64px; display: flex; align-items: center; justify-content: center;
+  line-height: 1.3;
+}
+.ans-btn:active { transform: scale(0.96); }
+.ans-btn:disabled { cursor: default; }
+.ans-btn.correct { background: rgba(74,222,128,.25); border-color: var(--green); }
+.ans-btn.wrong { background: rgba(248,113,113,.25); border-color: var(--coral); }
+.ans-btn.timeout { background: rgba(251,191,36,.15); border-color: var(--gold); }
+
+.fb-row {
+  margin-top: 10px; padding: 10px 14px; border-radius: 12px;
+  font-size: 0.88rem; line-height: 1.4; display: none;
+}
+.fb-row.ok { background: rgba(74,222,128,.12); border: 1px solid var(--green); }
+.fb-row.bad { background: rgba(248,113,113,.12); border: 1px solid var(--coral); }
+.fb-row.time { background: rgba(251,191,36,.12); border: 1px solid var(--gold); }
+
+/* ── RESULTS ── */
+.results-screen { display: none; padding: 0 0 80px; }
+.results-header {
+  background: linear-gradient(135deg, #071427, #0f1923);
+  padding: 28px 20px; text-align: center;
+}
+.results-header h1 { font-size: 1.8rem; margin-bottom: 4px; }
+.final-score { font-size: 3.5rem; font-weight: 900; color: var(--gold); margin: 4px 0; }
+.final-sub { color: var(--muted); font-size: 0.9rem; }
+.xp-pill {
+  background: rgba(251,191,36,.15); border: 2px solid var(--gold);
+  border-radius: 14px; padding: 8px 20px; margin: 10px auto 0;
+  font-size: 1.2rem; font-weight: 800; color: var(--gold); display: inline-block;
+}
+.breakdown { padding: 16px; }
+.breakdown h2 { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+.break-item {
+  background: var(--card); border-radius: 12px; padding: 12px 14px;
+  margin-bottom: 8px; display: flex; align-items: flex-start; gap: 10px;
+}
+.break-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+.break-q { font-size: 0.85rem; font-weight: 600; margin-bottom: 2px; }
+.break-ans { font-size: 0.8rem; color: var(--muted); }
+.break-ans .correct-ans { color: var(--green); font-weight: 600; }
+.result-btns { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
+.result-btns button, .result-btns a {
+  padding: 15px; border-radius: 12px; font-size: 1rem;
+  font-weight: 700; cursor: pointer; border: none; text-decoration: none; display: block; text-align: center;
+}
+.btn-play { background: linear-gradient(135deg, var(--blue), var(--purple)); color: white; }
+.btn-hub { background: var(--card); color: var(--muted); }
+
+.screen { display: none; }
+.screen.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- LOBBY -->
+<div id="lobbyScreen" class="screen active">
+  <div class="lobby-header">
+    <h1>⚡ Speed Trivia</h1>
+    <p>30 seconds · Streak multiplier · 10 questions</p>
+  </div>
+  <div class="domain-cards">
+    <div class="section-label" style="padding:0 0 0 4px">Choose your category</div>
+    <div class="dom-card all-dom" onclick="startGame('all')">
+      <span class="dom-icon">🔬</span>
+      <div class="dom-info"><h3>All Science</h3><p>Mix of all 3 domains</p></div>
+      <div class="dom-hs"><div class="hs-val" id="hs-all">—</div><div class="hs-lbl">Best</div></div>
+    </div>
+    <div class="dom-card ps-dom" onclick="startGame('ps')">
+      <span class="dom-icon">⚗️</span>
+      <div class="dom-info"><h3>Physical Science</h3><p>Forces, matter & changes</p></div>
+      <div class="dom-hs"><div class="hs-val" id="hs-ps">—</div><div class="hs-lbl">Best</div></div>
+    </div>
+    <div class="dom-card ls-dom" onclick="startGame('ls')">
+      <span class="dom-icon">🌿</span>
+      <div class="dom-info"><h3>Life Science</h3><p>Cells, ecosystems & traits</p></div>
+      <div class="dom-hs"><div class="hs-val" id="hs-ls">—</div><div class="hs-lbl">Best</div></div>
+    </div>
+    <div class="dom-card ess-dom" onclick="startGame('ess')">
+      <span class="dom-icon">🌍</span>
+      <div class="dom-info"><h3>Earth Science</h3><p>Rocks, water cycle & Earth layers</p></div>
+      <div class="dom-hs"><div class="hs-val" id="hs-ess">—</div><div class="hs-lbl">Best</div></div>
+    </div>
+  </div>
+  <a href="index.html" class="back-hub">🏠 Back to Hub</a>
+</div>
+
+<!-- GAME -->
+<div id="gameScreen" class="screen">
+  <div class="game-header">
+    <span class="q-counter" id="qCounter">1 / 10</span>
+    <span class="streak-display" id="streakDisplay">🔥 0 streak</span>
+    <span class="score-display" id="scoreDisplay">0 pts</span>
+  </div>
+  <div class="timer-wrap">
+    <div class="timer-ring">
+      <svg width="70" height="70" viewBox="0 0 70 70">
+        <circle class="timer-bg" cx="35" cy="35" r="30"/>
+        <circle class="timer-arc" id="timerArc" cx="35" cy="35" r="30" stroke="#4ade80"/>
+      </svg>
+      <div class="timer-num" id="timerNum">30</div>
+    </div>
+  </div>
+  <div class="q-area">
+    <div class="streak-bar">
+      <span class="streak-label">Streak</span>
+      <div class="streak-dots" id="streakDots"></div>
+      <span class="multiplier-badge" id="multiBadge">×1</span>
+    </div>
+    <div class="q-card"><div class="q-txt" id="qTxt"></div></div>
+    <div class="answers-grid" id="answers"></div>
+    <div class="fb-row" id="fbRow"></div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="resultsScreen" class="screen">
+  <div class="results-header">
+    <h1 id="resTitle">Great Job!</h1>
+    <div class="final-score" id="finalScore">0</div>
+    <div class="final-sub" id="finalSub">0 / 10 correct</div>
+    <div class="xp-pill" id="xpPill">+0 XP ⚡</div>
+  </div>
+  <div class="breakdown">
+    <h2>Question Breakdown</h2>
+    <div id="breakdownList"></div>
+  </div>
+  <div class="result-btns">
+    <button class="btn-play" id="playAgainBtn" onclick="replayGame()">🔄 Play Again</button>
+    <button class="btn-play" style="background:linear-gradient(135deg,var(--green),var(--blue));color:#1a1a1a" onclick="showScreen('lobbyScreen');loadHighScores()">📋 Change Domain</button>
+    <a class="btn-hub" href="index.html">🏠 Back to Hub</a>
+  </div>
+</div>
+
+<script>
+const SAVE_KEY = 'evie_eog_progress';
+const HS_KEY = 'evie_trivia_hs';
+const LVL_XP = [0,0,100,250,500,800,1200,1700,2300,3000,4000];
+function loadP(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY));return d||dflt();}catch(e){return dflt();}}
+function dflt(){return{xp:0,level:1,badges:[],domainCorrect:{ps:0,ls:0,ess:0},domainTotal:{ps:0,ls:0,ess:0},battingStats:{atBats:0,hits:0,homeRuns:0},flashcardsMastered:0,lastVisit:null,dailyStreak:0,bossesDefeated:[],scratchPacks:0};}
+function saveP(p){localStorage.setItem(SAVE_KEY,JSON.stringify(p));}
+function calcLvl(xp){for(let i=LVL_XP.length-1;i>=1;i--){if(xp>=LVL_XP[i])return i;}return 1;}
+function loadHS(){try{return JSON.parse(localStorage.getItem(HS_KEY))||{};}catch(e){return{};}}
+function saveHS(h){localStorage.setItem(HS_KEY,JSON.stringify(h));}
+
+const ALL_QS = [
+  // Physical Science
+  {d:'ps',q:'Which of these is a CHEMICAL change?',opts:['Ice melting','Glass breaking','Wood burning','Salt dissolving'],ans:2,explain:'Burning creates new substances (ash, CO₂) — that\'s chemical! The others only change form or mix.'},
+  {d:'ps',q:'What type of force is gravity?',opts:['Contact force','Applied force','Non-contact force','Friction force'],ans:2,explain:'Gravity acts at a distance without touching — it\'s a non-contact force, like magnetism!'},
+  {d:'ps',q:'When balanced forces act on an object, the object:',opts:['Speeds up','Changes direction','Slows to a stop','Keeps same motion'],ans:3,explain:'Balanced forces = no change in motion! The object stays still or keeps moving at the same speed and direction.'},
+  {d:'ps',q:'What does friction do to a moving object?',opts:['Speeds it up','Has no effect','Slows it down','Lifts it up'],ans:2,explain:'Friction opposes motion — it acts opposite to the direction the object moves, slowing it down.'},
+  {d:'ps',q:'Saltwater is BEST described as:',opts:['A pure substance','A compound','A solution (mixture)','A new substance'],ans:2,explain:'Saltwater is a solution — a homogeneous mixture. Salt (solute) dissolves evenly in water (solvent).'},
+  {d:'ps',q:'Which is a PHYSICAL property?',opts:['Flammability','Reactivity','Ability to rust','Density'],ans:3,explain:'Density is a physical property — it can be observed/measured without changing the substance. Flammability and reactivity are chemical properties.'},
+  {d:'ps',q:'Which force would BEST separate iron filings from sand?',opts:['Gravity','Magnetism','Friction','Applied force'],ans:1,explain:'Iron is magnetic, sand is not! A magnet attracts the iron filings and leaves the sand behind.'},
+  {d:'ps',q:'A soccer ball is kicked and rolls to a stop. What changed?',opts:['Its mass','Its motion (speed)','Its weight','Its density'],ans:1,explain:'The ball\'s motion changed — it slowed down due to friction. Unbalanced forces (friction > applied force) caused the change in motion.'},
+  {d:'ps',q:'Which of these is a PHYSICAL change?',opts:['Burning paper','Rusting iron','Tearing paper','Cooking an egg'],ans:2,explain:'Tearing paper is physical — the paper is still paper, just smaller. No new substance is made!'},
+  {d:'ps',q:'Which is an example of a contact force?',opts:['Gravity','Magnetism','Friction','Electric attraction'],ans:2,explain:'Friction requires objects to physically touch — it\'s a contact force. Gravity and magnetism act without contact.'},
+  {d:'ps',q:'A student mixes oil and water. This forms a:',opts:['Solution','Compound','Mixture','Chemical change'],ans:2,explain:'Oil and water form a mixture — they don\'t dissolve into each other (it\'s actually a heterogeneous mixture). They can be separated!'},
+  {d:'ps',q:'What type of change produces a new substance?',opts:['Physical change','State change','Chemical change','Mixture change'],ans:2,explain:'Chemical changes produce NEW substances with different properties. Signs: burning, bubbling, color change, light/heat produced.'},
+  // Life Science
+  {d:'ls',q:'Which organelle makes food using sunlight?',opts:['Mitochondria','Cell membrane','Chloroplast','Nucleus'],ans:2,explain:'Chloroplasts capture sunlight and use it to make glucose through photosynthesis. Found only in plant cells!'},
+  {d:'ls',q:'What do decomposers do in an ecosystem?',opts:['Make food from sunlight','Eat primary consumers','Break down dead matter','Hunt apex predators'],ans:2,explain:'Decomposers (bacteria, fungi) break down dead organisms and return nutrients to the soil — essential for recycling!'},
+  {d:'ls',q:'Which is an INHERITED trait?',opts:['Speaking Spanish','Playing piano','Blood type','Scar on your knee'],ans:2,explain:'Blood type is inherited — it\'s coded in DNA and passed from parents. The others are acquired through experience or accidents.'},
+  {d:'ls',q:'In Grass→Rabbit→Fox, what is the fox?',opts:['Producer','Primary consumer','Secondary consumer','Decomposer'],ans:2,explain:'The fox is a secondary consumer — it eats the primary consumer (rabbit). Grass is the producer; rabbit is primary consumer.'},
+  {d:'ls',q:'Which organelle controls what enters/exits a cell?',opts:['Nucleus','Mitochondria','Chloroplast','Cell membrane'],ans:3,explain:'The cell membrane is the gatekeeper! It controls what enters and exits, keeping the cell\'s environment balanced.'},
+  {d:'ls',q:'What is a biotic factor?',opts:['Temperature','Sunlight','Rainfall','A rabbit'],ans:3,explain:'Biotic = LIVING. Rabbits, trees, bacteria — all biotic. Temperature, sunlight, and rainfall are abiotic (non-living).'},
+  {d:'ls',q:'Which body system breaks down food?',opts:['Circulatory','Respiratory','Digestive','Nervous'],ans:2,explain:'The digestive system breaks food into nutrients the body can use. The circulatory system then delivers those nutrients to cells!'},
+  {d:'ls',q:'If a predator is removed from a food web, its prey population will likely:',opts:['Decrease','Stay the same','Increase','Immediately disappear'],ans:2,explain:'Without predators, prey face less danger → more survive → population INCREASES. This cascade is why food web balance matters!'},
+  {d:'ls',q:'Natural selection happens because:',opts:['All organisms are identical','Some traits help survival & reproduction','Animals choose their own traits','Parents teach offspring to survive'],ans:1,explain:'Organisms with helpful traits survive and reproduce more → those traits get passed on. Over generations, the population changes!'},
+  {d:'ls',q:'What organelle contains the cell\'s DNA?',opts:['Mitochondria','Cell membrane','Chloroplast','Nucleus'],ans:3,explain:'The nucleus is the control center — it stores DNA (the instruction manual for the cell). All eukaryotic cells have a nucleus.'},
+  {d:'ls',q:'Which body system carries oxygen to cells?',opts:['Digestive','Respiratory','Nervous','Circulatory'],ans:3,explain:'The circulatory system pumps oxygen-rich blood from the lungs to every cell in the body via the heart and blood vessels.'},
+  {d:'ls',q:'A trait gained through experience (not DNA) is:',opts:['Eye color','Blood type','Learning to ride a bike','Height potential'],ans:2,explain:'Riding a bike is an acquired/learned trait — you weren\'t born knowing how! The others are inherited through DNA.'},
+  // Earth Science
+  {d:'ess',q:'Water vapor turning to liquid is called:',opts:['Evaporation','Precipitation','Condensation','Transpiration'],ans:2,explain:'Condensation = gas → liquid. Water vapor cools and becomes liquid droplets, forming clouds or dew on a cold glass!'},
+  {d:'ess',q:'Which rock type forms from cooled lava?',opts:['Sedimentary','Metamorphic','Igneous','Fossil rock'],ans:2,explain:'Igneous comes from the Latin word for fire! Lava cools → igneous rock. Examples: basalt (fast cooling) and granite (slow cooling).'},
+  {d:'ess',q:'Climate is DIFFERENT from weather because climate:',opts:['Only describes one day','Is always the same','Is weather averaged over 30+ years','Only applies to cold places'],ans:2,explain:'"Climate is what you expect, weather is what you get!" Climate = long-term patterns; weather = what\'s happening right now.'},
+  {d:'ess',q:'Which rock layer is Earth\'s thinnest?',opts:['Mantle','Inner core','Outer core','Crust'],ans:3,explain:'The crust is the thinnest layer — like the skin of an apple! It\'s 5-70 km thick. The mantle below it is ~2,900 km thick!'},
+  {d:'ess',q:'Weathering is BEST described as:',opts:['Water moving sediment downstream','Rocks being broken into smaller pieces','Sediment being deposited in layers','Rocks melting underground'],ans:1,explain:'Weathering breaks rocks apart (physically or chemically). Wind, water, ice, and acid rain are common weathering agents!'},
+  {d:'ess',q:'Plants releasing water vapor through leaves is called:',opts:['Evaporation','Condensation','Precipitation','Transpiration'],ans:3,explain:'Transpiration! Plants release water vapor through tiny stomata in their leaves — it adds water vapor to the atmosphere!'},
+  {d:'ess',q:'Which layer of Earth is liquid iron?',opts:['Crust','Mantle','Outer core','Inner core'],ans:2,explain:'The outer core is liquid iron and nickel. Its movement creates Earth\'s magnetic field, which protects us from solar wind!'},
+  {d:'ess',q:'What energy source drives the water cycle?',opts:['The Moon','Wind','The Sun','Gravity alone'],ans:2,explain:'The Sun\'s heat causes evaporation, which drives the entire water cycle. Without the Sun, water couldn\'t cycle!'},
+  {d:'ess',q:'Where are fossils MOST LIKELY found?',opts:['Igneous rock','Metamorphic rock','Sedimentary rock','Magma chambers'],ans:2,explain:'Sedimentary rock forms in layers that can bury and preserve organisms. Igneous/metamorphic form under intense heat that destroys fossils!'},
+  {d:'ess',q:'Water falling from clouds as rain or snow is called:',opts:['Evaporation','Condensation','Transpiration','Precipitation'],ans:3,explain:'Precipitation is any water falling from clouds — rain, snow, sleet, hail. It\'s the step after condensation in the water cycle!'},
+  {d:'ess',q:'Metamorphic rock forms from:',opts:['Cooled lava','Compressed sediment','Heat and pressure on existing rock','Chemical weathering alone'],ans:2,explain:'"Meta" = change! Existing rock + intense heat + pressure (but no melting) = metamorphic rock. Marble, slate, and quartzite are examples!'},
+  {d:'ess',q:'Which process involves water soaking into the ground?',opts:['Runoff','Transpiration','Infiltration / groundwater','Precipitation'],ans:2,explain:'Water soaking into the ground becomes groundwater (infiltration). It fills underground aquifers and can feed springs and wells!'}
+];
+
+let activeDomain = 'all';
+let gameQs = [], curIdx = 0, score = 0, streak = 0, correctCount = 0;
+let timerVal = 30, timerInterval = null, answered = false;
+let gameLog = [];
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function loadHighScores() {
+  const hs = loadHS();
+  ['all','ps','ls','ess'].forEach(d => {
+    const el = document.getElementById('hs-' + d);
+    if (el) el.textContent = hs[d] ? hs[d].toLocaleString() : '—';
+  });
+}
+
+function startGame(domain) {
+  activeDomain = domain;
+  const pool = domain === 'all' ? ALL_QS : ALL_QS.filter(q => q.d === domain);
+  // Shuffle and take 10
+  const shuffled = [...pool].sort(() => Math.random() - 0.5);
+  gameQs = shuffled.slice(0, Math.min(10, shuffled.length));
+  curIdx = 0; score = 0; streak = 0; correctCount = 0; gameLog = [];
+  showScreen('gameScreen');
+  renderQ();
+}
+
+function replayGame() { startGame(activeDomain); }
+
+function renderQ() {
+  clearInterval(timerInterval);
+  timerVal = 30; answered = false;
+  const q = gameQs[curIdx];
+  document.getElementById('qCounter').textContent = `${curIdx+1} / ${gameQs.length}`;
+  document.getElementById('scoreDisplay').textContent = score.toLocaleString() + ' pts';
+  document.getElementById('qTxt').textContent = q.q;
+
+  // Streak dots (max 5 shown)
+  const maxDots = 5;
+  const dots = document.getElementById('streakDots');
+  dots.innerHTML = Array(maxDots).fill(0).map((_,i) =>
+    `<div class="sdot${i < streak ? ' lit' : ''}"></div>`).join('');
+  const multi = getMultiplier();
+  document.getElementById('multiBadge').textContent = `×${multi}`;
+  document.getElementById('streakDisplay').textContent = `🔥 ${streak} streak`;
+
+  // Answers (shuffled letters)
+  const answersEl = document.getElementById('answers');
+  answersEl.innerHTML = ['A','B','C','D'].map((ltr,i) =>
+    `<button class="ans-btn" onclick="pick(${i})">${ltr}. ${q.opts[i]}</button>`
+  ).join('');
+
+  document.getElementById('fbRow').style.display = 'none';
+
+  // Timer
+  updateTimer(30);
+  timerInterval = setInterval(() => {
+    timerVal--;
+    updateTimer(timerVal);
+    if (timerVal <= 0) { clearInterval(timerInterval); handleTimeout(); }
+  }, 1000);
+}
+
+function getMultiplier() {
+  if (streak >= 5) return 3;
+  if (streak >= 3) return 2;
+  if (streak >= 1) return 1.5;
+  return 1;
+}
+
+function updateTimer(val) {
+  const arc = document.getElementById('timerArc');
+  const num = document.getElementById('timerNum');
+  const circumference = 188.5;
+  const offset = circumference * (1 - val/30);
+  arc.style.strokeDashoffset = offset;
+  arc.style.stroke = val <= 10 ? '#f87171' : val <= 20 ? '#fbbf24' : '#4ade80';
+  num.textContent = val;
+  num.className = 'timer-num' + (val <= 10 ? ' urgent' : '');
+}
+
+function pick(idx) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+  const q = gameQs[curIdx];
+  const btns = document.querySelectorAll('.ans-btn');
+  btns.forEach(b => b.disabled = true);
+  const correct = idx === q.ans;
+  btns[idx].classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) btns[q.ans].classList.add('correct');
+
+  const fb = document.getElementById('fbRow');
+  fb.style.display = 'block';
+
+  if (correct) {
+    streak++;
+    correctCount++;
+    const multi = getMultiplier();
+    const pts = Math.round(100 * multi);
+    score += pts;
+    fb.className = 'fb-row ok';
+    fb.innerHTML = `<strong>✅ +${pts} pts (×${multi})</strong> — ${q.explain}`;
+    const p = loadP();
+    p.domainCorrect[q.d] = (p.domainCorrect[q.d]||0)+1;
+    p.domainTotal[q.d] = (p.domainTotal[q.d]||0)+1;
+    saveP(p);
+  } else {
+    streak = 0;
+    fb.className = 'fb-row bad';
+    fb.innerHTML = `<strong>❌ Wrong!</strong> — ${q.explain}`;
+    const p = loadP();
+    p.domainTotal[q.d] = (p.domainTotal[q.d]||0)+1;
+    saveP(p);
+  }
+
+  gameLog.push({q:q.q, opts:q.opts, ans:q.ans, userAns:idx, correct, explain:q.explain});
+  document.getElementById('scoreDisplay').textContent = score.toLocaleString() + ' pts';
+  updateStreakUI();
+
+  setTimeout(() => {
+    curIdx++;
+    if (curIdx >= gameQs.length) showResults();
+    else renderQ();
+  }, 1800);
+}
+
+function handleTimeout() {
+  if (answered) return;
+  answered = true;
+  streak = 0;
+  const q = gameQs[curIdx];
+  const btns = document.querySelectorAll('.ans-btn');
+  btns.forEach(b => b.disabled = true);
+  btns[q.ans].classList.add('timeout');
+  const fb = document.getElementById('fbRow');
+  fb.style.display = 'block';
+  fb.className = 'fb-row time';
+  fb.innerHTML = `<strong>⏰ Time's up!</strong> — ${q.explain}`;
+  gameLog.push({q:q.q, opts:q.opts, ans:q.ans, userAns:-1, correct:false, explain:q.explain});
+  const p = loadP();
+  p.domainTotal[q.d] = (p.domainTotal[q.d]||0)+1;
+  saveP(p);
+  updateStreakUI();
+  setTimeout(() => {
+    curIdx++;
+    if (curIdx >= gameQs.length) showResults();
+    else renderQ();
+  }, 1800);
+}
+
+function updateStreakUI() {
+  const maxDots = 5;
+  const dots = document.getElementById('streakDots');
+  if (!dots) return;
+  dots.innerHTML = Array(maxDots).fill(0).map((_,i) =>
+    `<div class="sdot${i < streak ? ' lit' : ''}"></div>`).join('');
+  const multi = getMultiplier();
+  document.getElementById('multiBadge').textContent = `×${multi}`;
+  document.getElementById('streakDisplay').textContent = `🔥 ${streak} streak`;
+}
+
+function showResults() {
+  const xp = Math.round(score / 10);
+  const p = loadP();
+  p.xp = (p.xp||0) + xp;
+  p.level = calcLvl(p.xp);
+  if (correctCount >= 10 && !p.badges?.includes('speed_demon')) {
+    if (!p.badges) p.badges = [];
+    p.badges.push('speed_demon');
+  }
+  saveP(p);
+
+  // High score
+  const hs = loadHS();
+  const prev = hs[activeDomain] || 0;
+  const newHS = Math.max(prev, score);
+  hs[activeDomain] = newHS;
+  saveHS(hs);
+
+  const pct = correctCount / gameQs.length;
+  let title = 'Good Try!';
+  if (pct >= 0.9) title = '🌟 Science Star!';
+  else if (pct >= 0.7) title = '💪 Great Job!';
+  else if (pct >= 0.5) title = '📚 Keep Studying!';
+  else title = '🔄 Try Again!';
+
+  document.getElementById('resTitle').textContent = title;
+  document.getElementById('finalScore').textContent = score.toLocaleString();
+  document.getElementById('finalSub').textContent = `${correctCount} / ${gameQs.length} correct${score > prev ? ' · New High Score! 🏆' : ''}`;
+  document.getElementById('xpPill').textContent = `+${xp} XP ⚡`;
+
+  const list = document.getElementById('breakdownList');
+  list.innerHTML = gameLog.map(item => `
+    <div class="break-item">
+      <span class="break-icon">${item.correct ? '✅' : '❌'}</span>
+      <div>
+        <div class="break-q">${item.q}</div>
+        <div class="break-ans">
+          ${item.correct ? `<span class="correct-ans">✓ ${item.opts[item.ans]}</span>` :
+            `Your answer: ${item.userAns >= 0 ? item.opts[item.userAns] : 'Time out'} ·
+             <span class="correct-ans">✓ ${item.opts[item.ans]}</span>`}
+        </div>
+      </div>
+    </div>`).join('');
+
+  showScreen('resultsScreen');
+}
+
+loadHighScores();
+</script>
+</body>
+</html>

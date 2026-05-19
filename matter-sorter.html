@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matter Sorter ⚗️</title>
+<style>
+:root {
+  --bg: #0f1923; --card: #1a2940; --card2: #1e3050;
+  --green: #4ade80; --blue: #60a5fa; --coral: #f87171;
+  --gold: #fbbf24; --purple: #a78bfa; --orange: #fb923c;
+  --text: #e0f2fe; --muted: #94a3b8; --r: 20px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ── LOBBY ── */
+.lobby-header {
+  background: linear-gradient(135deg, #0f3460, #16213e, #0f1923);
+  padding: 28px 20px 22px; text-align: center;
+  border-bottom: 2px solid #1e3a5f;
+}
+.lobby-header h1 { font-size: 2rem; margin-bottom: 4px; }
+.lobby-header p { color: var(--muted); font-size: 0.9rem; }
+.round-cards { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.round-card {
+  background: var(--card); border-radius: var(--r);
+  padding: 20px; cursor: pointer; transition: transform 0.15s;
+  border: 2px solid #2a4a6f;
+}
+.round-card:active { transform: scale(0.97); }
+.round-card h3 { font-size: 1.1rem; margin-bottom: 4px; }
+.round-card p { font-size: 0.85rem; color: var(--muted); }
+.round-card .vs { font-size: 0.85rem; font-weight: 700; margin: 8px 0 0; display: flex; gap: 8px; align-items: center; }
+.tag { padding: 3px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; }
+.tag-l { background: rgba(96,165,250,.2); color: var(--blue); }
+.tag-r { background: rgba(248,113,113,.2); color: var(--coral); }
+.tag-g { background: rgba(74,222,128,.2); color: var(--green); }
+.tag-p { background: rgba(167,139,250,.2); color: var(--purple); }
+.tag-o { background: rgba(251,146,60,.2); color: var(--orange); }
+.back-hub { display: block; margin: 0 20px 20px; padding: 14px; text-align: center; background: var(--card); border-radius: var(--r); color: var(--muted); text-decoration: none; font-weight: 600; }
+
+/* ── GAME ── */
+.game-header {
+  padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
+  background: var(--card); border-bottom: 1px solid #1e3a5f;
+}
+.game-header .back-link { color: var(--muted); font-size: 0.85rem; cursor: pointer; font-weight: 600; }
+.score-row { display: flex; gap: 12px; align-items: center; }
+.score-chip { font-size: 0.85rem; font-weight: 700; color: var(--gold); }
+.streak-chip { font-size: 0.8rem; color: var(--orange); background: rgba(251,146,60,.15); padding: 3px 8px; border-radius: 10px; }
+
+.round-label { text-align: center; padding: 10px; font-size: 0.85rem; color: var(--muted); font-weight: 600; }
+
+/* Card stack */
+.card-stack {
+  position: relative; height: 280px;
+  margin: 0 24px 16px; perspective: 600px;
+}
+.sort-card {
+  position: absolute; inset: 0;
+  background: var(--card2); border-radius: var(--r);
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 24px;
+  border: 2px solid #2a4a6f; text-align: center;
+  transition: transform 0.35s cubic-bezier(.4,0,.2,1), opacity 0.35s;
+  transform-origin: bottom center;
+  user-select: none; touch-action: pan-y;
+}
+.sort-card.next-card {
+  transform: scale(0.94) translateY(8px);
+  z-index: 1; opacity: 0.7;
+}
+.sort-card.active-card { z-index: 2; cursor: grab; }
+.sort-card.fly-left { transform: translateX(-120%) rotate(-20deg); opacity: 0; }
+.sort-card.fly-right { transform: translateX(120%) rotate(20deg); opacity: 0; }
+.sort-card.tilt-left { transform: rotate(-5deg) translateX(-6px); }
+.sort-card.tilt-right { transform: rotate(5deg) translateX(6px); }
+
+.card-emoji { font-size: 4rem; margin-bottom: 12px; }
+.card-text { font-size: 1.1rem; font-weight: 700; line-height: 1.4; }
+.card-hint { font-size: 0.8rem; color: var(--muted); margin-top: 6px; }
+.card-domain {
+  position: absolute; top: 12px; right: 12px;
+  font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 10px; letter-spacing: .5px;
+}
+
+/* Choice labels on sides */
+.choice-labels {
+  display: flex; justify-content: space-between;
+  padding: 0 16px; margin-bottom: 8px;
+}
+.choice-label {
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .5px; opacity: 0.5; transition: opacity 0.2s;
+}
+.choice-label.left { color: var(--blue); }
+.choice-label.right { color: var(--coral); }
+
+/* Choice buttons */
+.choice-btns {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  padding: 0 16px 16px;
+}
+.choice-btn {
+  padding: 16px 12px; border-radius: 14px;
+  border: none; font-size: 1rem; font-weight: 700;
+  cursor: pointer; transition: all 0.18s;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.choice-btn:active { transform: scale(0.96); }
+.choice-btn.left-btn { background: rgba(96,165,250,.15); border: 2px solid var(--blue); color: var(--blue); }
+.choice-btn.right-btn { background: rgba(248,113,113,.15); border: 2px solid var(--coral); color: var(--coral); }
+.choice-btn .btn-icon { font-size: 1.5rem; }
+.choice-btn .btn-label { font-size: 0.75rem; }
+
+/* Progress dots */
+.progress-dots { display: flex; justify-content: center; gap: 5px; padding: 0 0 10px; }
+.pdot { width: 8px; height: 8px; border-radius: 50%; background: #2a4a6f; transition: background 0.3s; }
+.pdot.done-c { background: var(--green); }
+.pdot.done-w { background: var(--coral); }
+.pdot.cur { background: var(--gold); }
+
+/* Feedback overlay on card */
+.card-feedback {
+  position: absolute; inset: 0; border-radius: var(--r);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3rem; z-index: 10; opacity: 0;
+  transition: opacity 0.2s; pointer-events: none;
+}
+.card-feedback.show-ok { background: rgba(74,222,128,.2); opacity: 1; }
+.card-feedback.show-bad { background: rgba(248,113,113,.2); opacity: 1; }
+
+/* Fact strip */
+.fact-strip {
+  margin: 0 16px 10px; padding: 10px 14px;
+  border-radius: 12px; font-size: 0.85rem; line-height: 1.45;
+  display: none;
+}
+.fact-strip.ok { background: rgba(74,222,128,.1); border: 1px solid var(--green); }
+.fact-strip.bad { background: rgba(248,113,113,.1); border: 1px solid var(--coral); }
+
+/* Round complete screen */
+.round-done {
+  position: fixed; inset: 0; z-index: 200;
+  background: linear-gradient(180deg,#071427,#0f1923);
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 30px 24px; text-align: center;
+  display: none;
+}
+.rd-emoji { font-size: 4.5rem; margin-bottom: 12px; }
+.rd-title { font-size: 1.8rem; font-weight: 800; color: var(--gold); margin-bottom: 8px; }
+.rd-score { font-size: 1rem; color: var(--muted); margin-bottom: 20px; }
+.xp-pill { background: rgba(251,191,36,.15); border: 2px solid var(--gold); border-radius: 14px; padding: 10px 22px; font-size: 1.4rem; font-weight: 800; color: var(--gold); margin-bottom: 20px; }
+.rd-btns { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 300px; }
+.rd-btns button, .rd-btns a { padding: 15px; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; border: none; text-decoration: none; display: block; text-align: center; }
+.btn-next-round { background: linear-gradient(135deg, var(--blue), var(--purple)); color: white; }
+.btn-menu { background: var(--card2); color: var(--text); }
+.btn-hub { background: var(--card); color: var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- LOBBY -->
+<div id="lobbyScreen" class="screen active">
+  <div class="lobby-header">
+    <h1>⚗️ Matter Sorter</h1>
+    <p>Swipe to sort! 3 rounds of matter mastery</p>
+  </div>
+  <div class="round-cards">
+    <div class="round-card" onclick="startRound(0)" style="border-color:#60a5fa">
+      <h3>⚗️ Round 1 — Changes</h3>
+      <p>Sort each example as a physical or chemical change</p>
+      <div class="vs">
+        <span class="tag tag-l">Physical Change</span>
+        <span>vs</span>
+        <span class="tag tag-r">Chemical Change</span>
+      </div>
+    </div>
+    <div class="round-card" onclick="startRound(1)" style="border-color:#4ade80">
+      <h3>🧪 Round 2 — Matter Types</h3>
+      <p>Sort each substance as a mixture or pure substance</p>
+      <div class="vs">
+        <span class="tag tag-g">Mixture</span>
+        <span>vs</span>
+        <span class="tag tag-p">Pure Substance</span>
+      </div>
+    </div>
+    <div class="round-card" onclick="startRound(2)" style="border-color:#fb923c">
+      <h3>🔬 Round 3 — Properties</h3>
+      <p>Sort each property as physical or chemical</p>
+      <div class="vs">
+        <span class="tag tag-l">Physical Property</span>
+        <span>vs</span>
+        <span class="tag tag-o">Chemical Property</span>
+      </div>
+    </div>
+  </div>
+  <a href="index.html" class="back-hub">🏠 Back to Hub</a>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="gameScreen" class="screen">
+  <div class="game-header">
+    <span class="back-link" onclick="goLobby()">← Rounds</span>
+    <div class="score-row">
+      <span class="streak-chip" id="streakChip">🔥 0</span>
+      <span class="score-chip" id="scoreChip">0 pts</span>
+    </div>
+  </div>
+  <div class="round-label" id="roundLabel"></div>
+  <div class="progress-dots" id="pdots"></div>
+  <div class="choice-labels">
+    <div class="choice-label left" id="leftLabel"></div>
+    <div class="choice-label right" id="rightLabel"></div>
+  </div>
+  <div class="card-stack" id="cardStack">
+    <div class="sort-card next-card" id="nextCard"></div>
+    <div class="sort-card active-card" id="activeCard">
+      <div class="card-feedback" id="cardFeedback"></div>
+    </div>
+  </div>
+  <div class="fact-strip" id="factStrip"></div>
+  <div class="choice-btns">
+    <button class="choice-btn left-btn" id="leftBtn" onclick="choose('left')">
+      <span class="btn-icon">👈</span>
+      <span class="btn-label" id="leftBtnLabel"></span>
+    </button>
+    <button class="choice-btn right-btn" id="rightBtn" onclick="choose('right')">
+      <span class="btn-icon">👉</span>
+      <span class="btn-label" id="rightBtnLabel"></span>
+    </button>
+  </div>
+</div>
+
+<!-- ROUND DONE -->
+<div class="round-done" id="roundDone">
+  <div class="rd-emoji" id="rdEmoji">⭐</div>
+  <div class="rd-title" id="rdTitle">Round Complete!</div>
+  <div class="rd-score" id="rdScore"></div>
+  <div class="xp-pill" id="rdXP">+0 XP ⚡</div>
+  <div class="rd-btns">
+    <button class="btn-next-round" id="nextRoundBtn" onclick="nextRound()"></button>
+    <button class="btn-menu" onclick="roundDoneToMenu()">📋 Choose Round</button>
+    <a class="btn-hub" href="index.html">🏠 Hub</a>
+  </div>
+</div>
+
+<script>
+const SAVE_KEY = 'evie_eog_progress';
+const LVL_XP = [0,0,100,250,500,800,1200,1700,2300,3000,4000];
+function loadP(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY));return d||dflt();}catch(e){return dflt();}}
+function dflt(){return{xp:0,level:1,badges:[],domainCorrect:{ps:0,ls:0,ess:0},domainTotal:{ps:0,ls:0,ess:0},battingStats:{atBats:0,hits:0,homeRuns:0},flashcardsMastered:0,lastVisit:null,dailyStreak:0,bossesDefeated:[],scratchPacks:0};}
+function saveP(p){localStorage.setItem(SAVE_KEY,JSON.stringify(p));}
+function calcLvl(xp){for(let i=LVL_XP.length-1;i>=1;i--){if(xp>=LVL_XP[i])return i;}return 1;}
+
+const ROUNDS = [
+  {
+    id:0, title:'Round 1 — Changes ⚗️',
+    leftLabel:'Physical', rightLabel:'Chemical',
+    leftColor:'var(--blue)', rightColor:'var(--coral)',
+    cards:[
+      {emoji:'🧊',text:'Ice melting into water',hint:'Does the substance change?',side:'left',explain:'Physical change! Water is still H₂O — only its state (solid→liquid) changed. No new substance formed.'},
+      {emoji:'🔥',text:'Wood burning in a campfire',hint:'Are new substances created?',side:'right',explain:'Chemical change! Burning creates NEW substances: ash, carbon dioxide, and water vapor. Signs: light, heat, smoke.'},
+      {emoji:'📄',text:'Tearing paper into small pieces',hint:'Is the paper still paper?',side:'left',explain:'Physical change! Torn paper is still paper — it\'s just smaller pieces. No new substance was created.'},
+      {emoji:'🥛',text:'Milk going sour',hint:'Does new substance form?',side:'right',explain:'Chemical change! Bacteria break down milk sugars into lactic acid — a NEW substance. The smell and taste change permanently.'},
+      {emoji:'🧂',text:'Salt dissolving in water',hint:'Can you get the salt back?',side:'left',explain:'Physical change! Salt and water are just mixed — no new substance forms. You can evaporate the water to get the salt back!'},
+      {emoji:'🎆',text:'Fireworks exploding',hint:'New substances? Light? Heat?',side:'right',explain:'Chemical change! Fireworks produce new substances, light, heat, sound, and gas. All signs point to chemical change!'},
+      {emoji:'🪟',text:'Glass breaking into pieces',hint:'Is it still glass?',side:'left',explain:'Physical change! Broken glass is still glass — just smaller. No new substance formed. Physical changes only change shape/size/state.'},
+      {emoji:'🔩',text:'Iron nail rusting',hint:'Does a new substance form?',side:'right',explain:'Chemical change! Rust (iron oxide) is a NEW substance different from iron. Oxygen from air reacts with iron — chemical reaction!'},
+      {emoji:'💧',text:'Water boiling into steam',hint:'Is steam still water?',side:'left',explain:'Physical change! Steam is still H₂O — just in gas form. Water can condense back into liquid. Only the state changed!'},
+      {emoji:'🍞',text:'Baking bread dough',hint:'Can you turn bread back to dough?',side:'right',explain:'Chemical change! Heat causes chemical reactions in the dough, creating new substances. You can\'t un-bake bread — it\'s permanent!'},
+      {emoji:'🌿',text:'Cutting grass with a mower',hint:'Is it still grass?',side:'left',explain:'Physical change! Cut grass is still grass — just shorter. No new substance. Physical changes include cutting, crushing, bending.'},
+      {emoji:'🍎',text:'Apple turning brown after being cut',hint:'New substance on the surface?',side:'right',explain:'Chemical change! Oxygen in air reacts with compounds in the apple (oxidation), creating brown melanin — a new substance!'}
+    ]
+  },
+  {
+    id:1, title:'Round 2 — Matter Types 🧪',
+    leftLabel:'Mixture',rightLabel:'Pure Substance',
+    leftColor:'var(--green)',rightColor:'var(--purple)',
+    cards:[
+      {emoji:'🌊',text:'Saltwater',hint:'Can components be separated?',side:'left',explain:'Mixture! Saltwater is a solution — salt dissolved in water. You can separate them by evaporation. Mixtures can always be separated!'},
+      {emoji:'✨',text:'Pure gold (Au)',hint:'Is it made of one type of atom?',side:'right',explain:'Pure substance! Gold is an element — made of only gold atoms. Pure substances have a fixed, definite composition.'},
+      {emoji:'💨',text:'Air (nitrogen, oxygen, etc.)',hint:'Is it one substance or many mixed?',side:'left',explain:'Mixture! Air is ~78% nitrogen, ~21% oxygen, plus argon, CO₂ and more — all physically mixed together, not chemically bonded.'},
+      {emoji:'💧',text:'Distilled water (H₂O)',hint:'One type of molecule only?',side:'right',explain:'Pure substance! Water is a compound — always two hydrogen atoms bonded to one oxygen (H₂O). Same everywhere, fixed composition.'},
+      {emoji:'🥗',text:'Trail mix (nuts, seeds, raisins)',hint:'Can you pick out the parts?',side:'left',explain:'Mixture! Trail mix is a heterogeneous mixture — you can clearly see and separate its parts. No chemical bonding between components.'},
+      {emoji:'⚗️',text:'Pure oxygen gas (O₂)',hint:'One type of molecule?',side:'right',explain:'Pure substance! Pure oxygen is an element — only O₂ molecules. It has a fixed boiling point and consistent properties everywhere.'},
+      {emoji:'🍋',text:'Lemonade',hint:'Water + lemon juice + sugar mixed?',side:'left',explain:'Mixture (solution)! Lemonade mixes water, lemon juice, and sugar. The parts are physically combined — not chemically bonded.'},
+      {emoji:'🔧',text:'Pure iron (Fe)',hint:'One element, one type of atom?',side:'right',explain:'Pure substance (element)! Pure iron contains only iron atoms. It has definite properties: melting point 1538°C, specific density, etc.'},
+      {emoji:'🏖️',text:'Sand and gravel',hint:'Can you separate them by sifting?',side:'left',explain:'Mixture! Sand and gravel are physically mixed — they can be separated by sifting. They\'re not chemically bonded in any way.'},
+      {emoji:'🌫️',text:'Carbon dioxide (CO₂)',hint:'Fixed chemical formula?',side:'right',explain:'Pure substance (compound)! CO₂ always has exactly 1 carbon + 2 oxygen atoms bonded together. Fixed formula = pure substance!'},
+      {emoji:'🍵',text:'Tea with milk',hint:'Multiple substances mixed?',side:'left',explain:'Mixture! Tea with milk mixes tea compounds, water, milk proteins, fats, and sugars. All physically combined, not chemically bonded.'},
+      {emoji:'🧁',text:'Table sugar (C₁₂H₂₂O₁₁)',hint:'One compound, fixed formula?',side:'right',explain:'Pure substance (compound)! Sucrose always has the formula C₁₂H₂₂O₁₁ — a fixed ratio of carbon, hydrogen, and oxygen bonded together.'}
+    ]
+  },
+  {
+    id:2, title:'Round 3 — Properties 🔬',
+    leftLabel:'Physical',rightLabel:'Chemical',
+    leftColor:'var(--blue)',rightColor:'var(--orange)',
+    cards:[
+      {emoji:'🎨',text:'Color of a substance',hint:'Can you observe without changing it?',side:'left',explain:'Physical property! Color can be observed without changing the substance\'s composition. No reaction needed to see if something is blue!'},
+      {emoji:'🔥',text:'Flammability (ability to burn)',hint:'Must you react it to test it?',side:'right',explain:'Chemical property! You must BURN the substance to test flammability — and burning changes its composition. Chemical properties describe how substances react.'},
+      {emoji:'⚖️',text:'Mass of a substance',hint:'Can you measure it without reacting?',side:'left',explain:'Physical property! Mass can be measured with a balance without changing the substance at all. No reaction needed!'},
+      {emoji:'🧪',text:'Reactivity with acid',hint:'Does it involve a chemical reaction?',side:'right',explain:'Chemical property! To test how something reacts with acid, you must perform a chemical reaction that changes the substance.'},
+      {emoji:'🌡️',text:'Boiling point',hint:'Does heating to boiling change composition?',side:'left',explain:'Physical property! Boiling changes state (liquid→gas) but NOT the substance\'s chemical composition. Water boiling is still H₂O.'},
+      {emoji:'🔩',text:'Ability to rust (iron + oxygen)',hint:'Is a new substance formed?',side:'right',explain:'Chemical property! Rusting requires a chemical reaction between iron and oxygen, forming iron oxide (rust) — a new substance!'},
+      {emoji:'📏',text:'Density',hint:'Can you calculate it without reacting?',side:'left',explain:'Physical property! Density (mass ÷ volume) can be measured without any chemical change. It\'s great for identifying substances!'},
+      {emoji:'☠️',text:'Toxicity',hint:'Does it involve chemical reactions in the body?',side:'right',explain:'Chemical property! Toxicity describes how a substance chemically reacts with living tissue. It\'s about chemical interactions, not observable appearance.'},
+      {emoji:'💧',text:'Solubility in water',hint:'Does dissolving change the substance?',side:'left',explain:'Physical property! When salt dissolves in water, the salt is still NaCl — just spread out. It\'s a physical change (can be reversed by evaporation).'},
+      {emoji:'🥈',text:'Ability to tarnish (silver + air)',hint:'New substance on the surface?',side:'right',explain:'Chemical property! Tarnish is silver sulfide (Ag₂S) — a NEW substance formed by reaction between silver and sulfur in air. Chemical!'},
+      {emoji:'🔮',text:'State of matter (solid, liquid, gas)',hint:'Observe without changing composition?',side:'left',explain:'Physical property! You can observe if something is a solid, liquid, or gas without changing what it\'s made of. No reaction needed.'},
+      {emoji:'⚡',text:'Ability to conduct electricity',hint:'Does conducting change composition?',side:'left',explain:'Physical property! Electrical conductivity can be tested without changing a substance\'s chemical composition. Copper conducts electricity — it\'s still copper!'}
+    ]
+  }
+];
+
+let activeRound = 0, curCard = 0, score = 0, streak = 0, correct = 0, picking = false;
+let roundCards = [];
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function goLobby() {
+  document.getElementById('roundDone').style.display = 'none';
+  showScreen('lobbyScreen');
+}
+function roundDoneToMenu() {
+  document.getElementById('roundDone').style.display = 'none';
+  showScreen('lobbyScreen');
+}
+
+function startRound(roundIdx) {
+  activeRound = roundIdx;
+  const r = ROUNDS[roundIdx];
+  roundCards = [...r.cards].sort(() => Math.random() - 0.5);
+  curCard = 0; score = 0; streak = 0; correct = 0; picking = false;
+
+  document.getElementById('roundLabel').textContent = r.title;
+  document.getElementById('leftLabel').textContent = r.leftLabel;
+  document.getElementById('rightLabel').textContent = r.rightLabel;
+  document.getElementById('leftBtnLabel').textContent = r.leftLabel;
+  document.getElementById('rightBtnLabel').textContent = r.rightLabel;
+  document.getElementById('leftBtn').style.borderColor = r.leftColor;
+  document.getElementById('leftBtn').style.color = r.leftColor;
+  document.getElementById('leftBtn').style.background = r.leftColor.replace(')',', .15)').replace('var(', 'rgba(').replace(/var\(([^)]+)\)/, (m,v)=> {
+    const colors = {'--blue':'96,165,250','--green':'74,222,128','--coral':'248,113,113','--purple':'167,139,250','--orange':'251,146,60'};
+    return `rgba(${colors[v]||'96,165,250'}, .15)`;
+  });
+  document.getElementById('rightBtn').style.borderColor = r.rightColor;
+  document.getElementById('rightBtn').style.color = r.rightColor;
+
+  showScreen('gameScreen');
+  renderCard();
+}
+
+function renderCard() {
+  const r = ROUNDS[activeRound];
+  const card = roundCards[curCard];
+  const nextCardData = roundCards[curCard + 1];
+
+  // Progress dots
+  const dots = document.getElementById('pdots');
+  dots.innerHTML = roundCards.map((_,i) => {
+    let cls = 'pdot';
+    if (i < curCard) cls += ROUNDS[activeRound].cards.find(c => c.text === roundCards[i].text)?.side === roundCards[i].side ? ' done-c' : ' done-c';
+    else if (i === curCard) cls += ' cur';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+
+  // Active card content
+  const ac = document.getElementById('activeCard');
+  ac.className = 'sort-card active-card';
+  ac.innerHTML = `
+    <div class="card-feedback" id="cardFeedback"></div>
+    <div class="card-emoji">${card.emoji}</div>
+    <div class="card-text">${card.text}</div>
+    <div class="card-hint">${card.hint}</div>`;
+
+  // Next card preview
+  const nc = document.getElementById('nextCard');
+  if (nextCardData) {
+    nc.innerHTML = `<div class="card-emoji" style="opacity:.5">${nextCardData.emoji}</div>`;
+    nc.className = 'sort-card next-card';
+  } else {
+    nc.innerHTML = '';
+    nc.className = 'sort-card next-card';
+  }
+
+  // Scores
+  document.getElementById('scoreChip').textContent = score + ' pts';
+  document.getElementById('streakChip').textContent = `🔥 ${streak}`;
+  document.getElementById('factStrip').style.display = 'none';
+  document.getElementById('leftBtn').disabled = false;
+  document.getElementById('rightBtn').disabled = false;
+  picking = false;
+}
+
+function choose(dir) {
+  if (picking) return;
+  picking = true;
+  const card = roundCards[curCard];
+  const correct_dir = card.side;
+  const isCorrect = dir === correct_dir;
+  const ac = document.getElementById('activeCard');
+  const fb = document.getElementById('cardFeedback');
+  const fact = document.getElementById('factStrip');
+
+  document.getElementById('leftBtn').disabled = true;
+  document.getElementById('rightBtn').disabled = true;
+
+  if (isCorrect) {
+    streak++;
+    const multi = streak >= 4 ? 3 : streak >= 2 ? 2 : 1;
+    const pts = 10 * multi;
+    score += pts;
+    correct++;
+    fb.className = 'card-feedback show-ok';
+    fb.textContent = '✅';
+    fact.className = 'fact-strip ok';
+    fact.innerHTML = `<strong>✓ ${dir === 'left' ? ROUNDS[activeRound].leftLabel : ROUNDS[activeRound].rightLabel}!</strong>${streak > 1 ? ` ×${multi} streak bonus` : ''} — ${card.explain}`;
+    const p = loadP();
+    p.domainCorrect.ps = (p.domainCorrect.ps||0)+1;
+    p.domainTotal.ps = (p.domainTotal.ps||0)+1;
+    saveP(p);
+  } else {
+    streak = 0;
+    fb.className = 'card-feedback show-bad';
+    fb.textContent = '❌';
+    fact.className = 'fact-strip bad';
+    fact.innerHTML = `<strong>✗ That\'s ${dir === 'left' ? ROUNDS[activeRound].leftLabel : ROUNDS[activeRound].rightLabel}.</strong> The correct answer is <strong>${correct_dir === 'left' ? ROUNDS[activeRound].leftLabel : ROUNDS[activeRound].rightLabel}</strong> — ${card.explain}`;
+    const p = loadP();
+    p.domainTotal.ps = (p.domainTotal.ps||0)+1;
+    saveP(p);
+  }
+
+  fact.style.display = 'block';
+  document.getElementById('scoreChip').textContent = score + ' pts';
+  document.getElementById('streakChip').textContent = `🔥 ${streak}`;
+
+  // Fly card off
+  setTimeout(() => {
+    ac.className = `sort-card active-card ${dir === 'left' ? 'fly-left' : 'fly-right'}`;
+  }, 300);
+
+  setTimeout(() => {
+    curCard++;
+    if (curCard >= roundCards.length) {
+      showRoundDone();
+    } else {
+      renderCard();
+    }
+  }, 850);
+}
+
+function showRoundDone() {
+  const r = ROUNDS[activeRound];
+  const xp = Math.round(score * 0.5);
+  const p = loadP();
+  p.xp = (p.xp||0) + xp;
+  p.level = calcLvl(p.xp);
+  saveP(p);
+
+  const pct = correct / roundCards.length;
+  let emoji = '⭐', title = 'Round Complete!';
+  if (pct >= 0.9) { emoji = '🏆'; title = 'Perfect Sorter! 🏆'; }
+  else if (pct >= 0.7) { emoji = '💪'; title = 'Great Job!'; }
+  else if (pct >= 0.5) { emoji = '📚'; title = 'Keep Practicing!'; }
+
+  document.getElementById('rdEmoji').textContent = emoji;
+  document.getElementById('rdTitle').textContent = title;
+  document.getElementById('rdScore').textContent = `${correct}/${roundCards.length} correct · ${score} points`;
+  document.getElementById('rdXP').textContent = `+${xp} XP ⚡`;
+
+  const nextBtn = document.getElementById('nextRoundBtn');
+  const hasNext = activeRound < ROUNDS.length - 1;
+  nextBtn.textContent = hasNext ? `Next Round: ${ROUNDS[activeRound+1].title.split('—')[1]?.trim()} →` : '🔄 Play Again';
+  nextBtn.onclick = hasNext ? (() => { document.getElementById('roundDone').style.display = 'none'; startRound(activeRound+1); }) : (() => { document.getElementById('roundDone').style.display = 'none'; startRound(activeRound); });
+
+  document.getElementById('roundDone').style.display = 'flex';
+}
+
+function nextRound() {}
+</script>
+</body>
+</html>

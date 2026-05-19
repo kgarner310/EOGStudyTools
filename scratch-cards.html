@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scratch Cards 🎰</title>
+<style>
+:root {
+  --bg: #0f1923; --card: #1a2940; --card2: #1e3050;
+  --green: #4ade80; --blue: #60a5fa; --coral: #f87171;
+  --gold: #fbbf24; --purple: #a78bfa; --orange: #fb923c;
+  --text: #e0f2fe; --muted: #94a3b8; --r: 14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 60px; }
+
+.header {
+  background: linear-gradient(135deg, #0f3460, #16213e, #0f1923);
+  padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 2px solid #1e3a5f;
+}
+.header a { color: var(--muted); font-size: 0.85rem; text-decoration: none; font-weight: 600; }
+.header h1 { font-size: 1.3rem; }
+.header .packs-chip { font-size: 0.8rem; color: var(--gold); font-weight: 700; background: rgba(251,191,36,.15); padding: 3px 10px; border-radius: 10px; }
+
+.pack-info {
+  padding: 14px 16px 8px; display: flex; align-items: center; justify-content: space-between;
+}
+.pack-info h2 { font-size: 1rem; font-weight: 700; }
+.pack-info .xp-earned { font-size: 0.9rem; color: var(--gold); font-weight: 700; }
+
+.instruction { padding: 0 16px 10px; font-size: 0.8rem; color: var(--muted); text-align: center; }
+.instruction strong { color: var(--text); }
+
+/* Card grid */
+.card-grid {
+  padding: 0 12px; display: grid;
+  grid-template-columns: repeat(3, 1fr); gap: 10px;
+}
+.scratch-card {
+  border-radius: var(--r); overflow: hidden; position: relative;
+  aspect-ratio: 3/4; cursor: pointer;
+  border: 2px solid #2a4a6f; transition: border-color 0.3s;
+}
+.scratch-card.rare { border-color: var(--gold); }
+.scratch-card.revealed { border-color: var(--green); }
+
+.card-content {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 8px; text-align: center;
+  background: var(--card2);
+}
+.card-content.rare-bg { background: linear-gradient(135deg, #1a1500, #2a2000); }
+.card-category { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; font-weight: 700; }
+.card-icon { font-size: 1.6rem; margin-bottom: 6px; }
+.card-fact { font-size: 0.62rem; line-height: 1.4; color: var(--text); font-weight: 500; }
+.card-xp {
+  margin-top: 6px; font-size: 0.7rem; font-weight: 800;
+  color: var(--gold); background: rgba(251,191,36,.15);
+  padding: 2px 8px; border-radius: 8px;
+}
+.card-xp.rare-xp { color: var(--coral); background: rgba(248,113,113,.15); }
+
+/* RARE label */
+.rare-label {
+  position: absolute; top: 5px; right: 5px;
+  font-size: 0.55rem; font-weight: 800; color: #1a1a1a;
+  background: var(--gold); padding: 2px 5px; border-radius: 5px;
+  text-transform: uppercase; letter-spacing: .5px; z-index: 5;
+}
+
+/* Scratch canvas overlay */
+.scratch-canvas {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  touch-action: none; z-index: 10; border-radius: calc(var(--r) - 2px);
+}
+
+/* New pack button */
+.new-pack-wrap { padding: 16px; }
+.new-pack-btn {
+  width: 100%; padding: 16px; border-radius: var(--r); border: none;
+  background: linear-gradient(135deg, var(--purple), var(--blue));
+  color: white; font-size: 1rem; font-weight: 700; cursor: pointer;
+  transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.new-pack-btn:disabled { opacity: 0.5; cursor: default; }
+
+/* Pack complete overlay */
+.pack-complete {
+  position: fixed; inset: 0; z-index: 200;
+  background: linear-gradient(180deg, #07091a 0%, #0f1923 100%);
+  display: none; flex-direction: column; align-items: center;
+  justify-content: center; padding: 30px 24px; text-align: center;
+}
+.pc-emoji { font-size: 4rem; margin-bottom: 12px; animation: packPop 0.6s ease; }
+@keyframes packPop { 0%{transform:scale(0)} 80%{transform:scale(1.15)} 100%{transform:scale(1)} }
+.pc-title { font-size: 1.8rem; font-weight: 800; color: var(--gold); margin-bottom: 8px; }
+.pc-sub { color: var(--muted); font-size: 0.95rem; margin-bottom: 18px; line-height: 1.5; }
+.xp-pill { background: rgba(251,191,36,.15); border: 2px solid var(--gold); border-radius: 14px; padding: 10px 22px; font-size: 1.5rem; font-weight: 800; color: var(--gold); margin-bottom: 20px; }
+.pc-btns { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 300px; }
+.pc-btns button, .pc-btns a { padding: 15px; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; border: none; text-decoration: none; display: block; text-align: center; }
+.btn-new-pack { background: linear-gradient(135deg, var(--purple), var(--blue)); color: white; }
+.btn-hub { background: var(--card); color: var(--text); }
+
+/* Reveal animation */
+@keyframes revealPop { 0%{transform:scale(0.9); opacity:0} 100%{transform:scale(1); opacity:1} }
+.card-content.just-revealed { animation: revealPop 0.3s ease; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="index.html">🏠 Hub</a>
+  <h1>🎰 Scratch Cards</h1>
+  <span class="packs-chip" id="packsChip">Pack #1</span>
+</div>
+
+<div class="pack-info">
+  <h2>Scratch to reveal science facts!</h2>
+  <span class="xp-earned" id="xpEarned">0 XP</span>
+</div>
+<div class="instruction">Use your <strong>finger or mouse</strong> to scratch each card. Find the <strong>⭐ RARE</strong> card for bonus XP!</div>
+
+<div class="card-grid" id="cardGrid"></div>
+
+<div class="new-pack-wrap">
+  <button class="new-pack-btn" id="newPackBtn" onclick="newPack()" disabled>
+    🎰 Open New Pack (scratch all 9 first!)
+  </button>
+</div>
+
+<div class="pack-complete" id="packComplete">
+  <div class="pc-emoji" id="pcEmoji">🎉</div>
+  <div class="pc-title" id="pcTitle">Pack Complete!</div>
+  <div class="pc-sub" id="pcSub"></div>
+  <div class="xp-pill" id="pcXP">+0 XP ⚡</div>
+  <div class="pc-btns">
+    <button class="btn-new-pack" onclick="hidePCandNew()">🎰 Open Another Pack</button>
+    <a class="btn-hub" href="index.html">🏠 Back to Hub</a>
+  </div>
+</div>
+
+<script>
+const SAVE_KEY = 'evie_eog_progress';
+const LVL_XP = [0,0,100,250,500,800,1200,1700,2300,3000,4000];
+function loadP(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY));return d||dflt();}catch(e){return dflt();}}
+function dflt(){return{xp:0,level:1,badges:[],domainCorrect:{ps:0,ls:0,ess:0},domainTotal:{ps:0,ls:0,ess:0},battingStats:{atBats:0,hits:0,homeRuns:0},flashcardsMastered:0,lastVisit:null,dailyStreak:0,bossesDefeated:[],scratchPacks:0};}
+function saveP(p){localStorage.setItem(SAVE_KEY,JSON.stringify(p));}
+function calcLvl(xp){for(let i=LVL_XP.length-1;i>=1;i--){if(xp>=LVL_XP[i])return i;}return 1;}
+
+const CARD_POOL = [
+  {cat:'Physical Properties', icon:'🔬', domain:'ps', fact:'Color, density, solubility, boiling point, and magnetism are PHYSICAL properties — observable WITHOUT changing the substance!'},
+  {cat:'Chemical Changes', icon:'⚗️', domain:'ps', fact:'Chemical changes make NEW substances! Signs: burning, light, heat, gas, or permanent color change. Burning wood = chemical! Ice melting = physical!'},
+  {cat:'Forces', icon:'⚡', domain:'ps', fact:'Balanced forces = no change in motion! Unbalanced forces = change in motion (speed up, slow down, or turn). Gravity and magnetism are NON-CONTACT forces!'},
+  {cat:'Mixtures & Solutions', icon:'🧪', domain:'ps', fact:'Mixtures can be separated by physical means! Solutions (saltwater) are homogeneous. Sand + gravel is heterogeneous. No new substances form!'},
+  {cat:'Cell Parts', icon:'🔬', domain:'ls', fact:'Mitochondria = ENERGY (powerhouse!). Chloroplast = photosynthesis (plants only!). Nucleus = DNA control center. Cell membrane = gatekeeper!'},
+  {cat:'Body Systems', icon:'❤️', domain:'ls', fact:'Circulatory = delivers oxygen. Respiratory = gas exchange in lungs. Digestive = breaks down food. Nervous = sends signals. They all WORK TOGETHER!'},
+  {cat:'Ecosystems', icon:'🌿', domain:'ls', fact:'Energy flows: Sun→Producer→Primary Consumer→Secondary Consumer→Apex Predator. Decomposers recycle nutrients. Remove one = cascade effects!'},
+  {cat:'Traits & Heredity', icon:'🧬', domain:'ls', fact:'Inherited traits (eye color, blood type) come from parents\' DNA. Acquired traits (riding a bike, a scar) come from experience. Natural selection = better-adapted survive!'},
+  {cat:'Earth Layers', icon:'🌍', domain:'ess', fact:'Crust (thinnest) → Mantle (thickest) → Outer Core (liquid iron = magnetic field!) → Inner Core (solid, hottest). Crust is like an apple\'s skin!'},
+  {cat:'Water Cycle', icon:'💧', domain:'ess', fact:'Sun heats water → Evaporation → Condensation (clouds!) → Precipitation → Runoff / Groundwater → Transpiration (plants) → Repeat forever!'},
+  {cat:'Rock Types', icon:'🪨', domain:'ess', fact:'Igneous = cooled lava/magma. Sedimentary = compressed layers = FOSSILS FOUND HERE! Metamorphic = heat + pressure transforms rock. Example: marble = metamorphic limestone!'},
+  {cat:'Water Cycle II', icon:'🌧️', domain:'ess', fact:'Evaporation: liquid→gas. Condensation: gas→liquid (clouds). Precipitation: water falls. Transpiration: plants release vapor. The SUN drives the whole cycle!'},
+  {cat:'Food Web Roles', icon:'🦅', domain:'ls', fact:'Producers make food (plants). Primary consumers eat producers (grasshoppers, rabbits). Secondary consumers eat them (frogs, snakes). Apex predators: hawks! Decomposers: fungi, bacteria!'},
+  {cat:'Rocks & Fossils', icon:'🦕', domain:'ess', fact:'Fossils are found in SEDIMENTARY rock — organisms get buried in layers of sediment. Metamorphic and igneous rocks form under heat that destroys fossils!'},
+  {cat:'Newton\'s Laws', icon:'🎯', domain:'ps', fact:'Net force = Applied force − Friction. Net force = 0 → balanced, no motion change. Net force ≠ 0 → unbalanced, motion CHANGES. Greater force = greater acceleration!'},
+];
+
+const RARE_CARD = {cat:'🌟 RARE: All 3 Domains!', icon:'🌟', domain:'ls', isRare:true,
+  fact:'PS: Balanced forces → no change! LS: Mitochondria = powerhouse! ESS: Outer core = magnetic field! You know ALL THREE domains — you\'re an EOG CHAMPION!'};
+
+let packNum = 1, packCards = [], revealedCount = 0, packXP = 0;
+let isScratching = false, activeCanvas = null, scratchPercentages = {};
+
+function buildPack() {
+  const shuffled = [...CARD_POOL].sort(() => Math.random() - 0.5);
+  const eight = shuffled.slice(0, 8);
+  // Insert RARE at random position
+  const rarePos = Math.floor(Math.random() * 9);
+  const pack = [];
+  let normalIdx = 0;
+  for (let i = 0; i < 9; i++) {
+    if (i === rarePos) pack.push({...RARE_CARD});
+    else pack.push({...eight[normalIdx++]});
+  }
+  return pack;
+}
+
+function initPack() {
+  packCards = buildPack();
+  revealedCount = 0;
+  packXP = 0;
+  scratchPercentages = {};
+  const grid = document.getElementById('cardGrid');
+  grid.innerHTML = '';
+  document.getElementById('xpEarned').textContent = '0 XP';
+  document.getElementById('newPackBtn').disabled = true;
+  document.getElementById('newPackBtn').textContent = '🎰 Scratch all 9 cards first!';
+
+  packCards.forEach((card, i) => {
+    const div = document.createElement('div');
+    div.className = 'scratch-card' + (card.isRare ? ' rare' : '');
+    div.id = 'card-' + i;
+
+    const xpAmt = card.isRare ? 15 : 5;
+    div.innerHTML = `
+      ${card.isRare ? '<div class="rare-label">⭐ RARE</div>' : ''}
+      <div class="card-content${card.isRare ? ' rare-bg' : ''}">
+        <div class="card-category">${card.cat}</div>
+        <div class="card-icon">${card.icon}</div>
+        <div class="card-fact">${card.fact}</div>
+        <div class="card-xp${card.isRare ? ' rare-xp' : ''}">+${xpAmt} XP${card.isRare ? ' 🌟' : ''}</div>
+      </div>
+      <canvas class="scratch-canvas" id="canvas-${i}"></canvas>`;
+
+    grid.appendChild(div);
+    initCanvas(i, card.isRare);
+  });
+}
+
+function initCanvas(idx, isRare) {
+  const canvas = document.getElementById('canvas-' + idx);
+  const card = canvas.parentElement;
+  const rect = card.getBoundingClientRect();
+
+  // Set canvas size after layout
+  requestAnimationFrame(() => {
+    const r = card.getBoundingClientRect();
+    canvas.width = r.width;
+    canvas.height = r.height;
+    const ctx = canvas.getContext('2d');
+
+    // Silver gradient scratch-off surface
+    const grad = ctx.createLinearGradient(0, 0, r.width, r.height);
+    if (isRare) {
+      grad.addColorStop(0, '#c8a000');
+      grad.addColorStop(0.4, '#e8c030');
+      grad.addColorStop(0.7, '#b08800');
+      grad.addColorStop(1, '#d4a800');
+    } else {
+      grad.addColorStop(0, '#4a5a6a');
+      grad.addColorStop(0.5, '#5a6a7a');
+      grad.addColorStop(1, '#3a4a5a');
+    }
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, r.width, r.height);
+
+    // "SCRATCH HERE" text
+    ctx.fillStyle = isRare ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.3)';
+    ctx.font = `bold ${Math.round(r.width * 0.1)}px system-ui`;
+    ctx.textAlign = 'center';
+    ctx.fillText('SCRATCH', r.width/2, r.height * 0.42);
+    ctx.fillText('HERE', r.width/2, r.height * 0.56);
+    ctx.font = `${Math.round(r.width * 0.22)}px system-ui`;
+    ctx.fillStyle = isRare ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.2)';
+    ctx.fillText('🎴', r.width/2, r.height * 0.28);
+  });
+
+  // Scratch events
+  canvas.addEventListener('mousedown', e => startScratch(e, idx, canvas));
+  canvas.addEventListener('mousemove', e => doScratch(e, idx, canvas));
+  canvas.addEventListener('mouseup', () => { isScratching = false; checkReveal(idx, canvas); });
+  canvas.addEventListener('mouseleave', () => { isScratching = false; checkReveal(idx, canvas); });
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); startScratch(e.touches[0], idx, canvas); }, {passive:false});
+  canvas.addEventListener('touchmove', e => { e.preventDefault(); doScratch(e.touches[0], idx, canvas); }, {passive:false});
+  canvas.addEventListener('touchend', () => { isScratching = false; checkReveal(idx, canvas); });
+}
+
+function getCanvasXY(e, canvas) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  return [(e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY];
+}
+
+function startScratch(e, idx, canvas) {
+  if (scratchPercentages[idx] >= 1) return;
+  isScratching = true;
+  activeCanvas = idx;
+  const [x, y] = getCanvasXY(e, canvas);
+  eraseCircle(canvas, x, y, 20);
+}
+
+function doScratch(e, idx, canvas) {
+  if (!isScratching || activeCanvas !== idx) return;
+  if (scratchPercentages[idx] >= 1) return;
+  const [x, y] = getCanvasXY(e, canvas);
+  eraseCircle(canvas, x, y, 20);
+}
+
+function eraseCircle(canvas, x, y, r) {
+  const ctx = canvas.getContext('2d');
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+function checkReveal(idx, canvas) {
+  if (scratchPercentages[idx] >= 1) return;
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+  let transparent = 0;
+  for (let i = 3; i < data.length; i += 4) {
+    if (data[i] < 128) transparent++;
+  }
+  const pct = transparent / (data.length / 4);
+  if (pct > 0.55) revealCard(idx, canvas);
+}
+
+function revealCard(idx, canvas) {
+  if (scratchPercentages[idx] >= 1) return;
+  scratchPercentages[idx] = 1;
+  // Animate clear
+  const ctx = canvas.getContext('2d');
+  let alpha = 1;
+  function fadeOut() {
+    alpha -= 0.1;
+    if (alpha <= 0) { canvas.style.display = 'none'; markRevealed(idx); return; }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.globalAlpha = alpha;
+    // Refill just to fade
+    ctx.fillStyle = 'rgba(30,48,80,' + alpha + ')';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(fadeOut);
+  }
+  fadeOut();
+}
+
+function markRevealed(idx) {
+  const card = document.getElementById('card-' + idx);
+  card.classList.add('revealed');
+  const content = card.querySelector('.card-content');
+  content.classList.add('just-revealed');
+  const cardData = packCards[idx];
+  const xpAmt = cardData.isRare ? 15 : 5;
+  packXP += xpAmt;
+  revealedCount++;
+  document.getElementById('xpEarned').textContent = packXP + ' XP';
+  if (revealedCount >= 9) allRevealed();
+}
+
+function allRevealed() {
+  const bonusXP = 10;
+  packXP += bonusXP;
+  const p = loadP();
+  p.xp = (p.xp||0) + packXP;
+  p.level = calcLvl(p.xp);
+  if (!p.scratchPacks) p.scratchPacks = 0;
+  p.scratchPacks++;
+  if (!p.badges) p.badges = [];
+  saveP(p);
+  document.getElementById('newPackBtn').disabled = false;
+  document.getElementById('newPackBtn').textContent = '🎰 Open Another Pack!';
+
+  setTimeout(() => {
+    document.getElementById('pcEmoji').textContent = '🎉';
+    document.getElementById('pcTitle').textContent = 'Pack Complete!';
+    document.getElementById('pcSub').textContent = `You scratched all 9 cards and learned science facts across all 3 domains! +${bonusXP} bonus XP for completing the pack!`;
+    document.getElementById('pcXP').textContent = `+${packXP} XP ⚡`;
+    document.getElementById('packComplete').style.display = 'flex';
+  }, 600);
+}
+
+function newPack() {
+  packNum++;
+  document.getElementById('packsChip').textContent = `Pack #${packNum}`;
+  document.getElementById('packComplete').style.display = 'none';
+  initPack();
+  window.scrollTo(0,0);
+}
+
+function hidePCandNew() { newPack(); }
+
+// Load pack count from progress
+const p = loadP();
+packNum = (p.scratchPacks||0) + 1;
+document.getElementById('packsChip').textContent = `Pack #${packNum}`;
+initPack();
+</script>
+</body>
+</html>

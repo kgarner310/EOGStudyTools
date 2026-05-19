@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boss Battle ⚔️</title>
+<style>
+:root {
+  --bg: #0f1923; --card: #1a2940; --card2: #1e3050;
+  --green: #4ade80; --blue: #60a5fa; --coral: #f87171;
+  --gold: #fbbf24; --purple: #a78bfa; --orange: #fb923c;
+  --text: #e0f2fe; --muted: #94a3b8;
+  --ps: #60a5fa; --ls: #4ade80; --ess: #fb923c;
+  --r: 16px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ── SELECT ── */
+.sel-header {
+  background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #0f1923 100%);
+  padding: 28px 20px 20px; text-align: center;
+  border-bottom: 2px solid #1e3a5f;
+}
+.sel-header h1 { font-size: 2rem; margin-bottom: 4px; }
+.sel-header p { color: var(--muted); font-size: 0.95rem; }
+.boss-grid { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.boss-card {
+  background: var(--card); border-radius: var(--r);
+  padding: 20px; border: 2px solid transparent;
+  cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+  position: relative; overflow: hidden;
+}
+.boss-card:active { transform: scale(0.97); }
+.boss-card.ps { border-color: var(--ps); box-shadow: 0 0 20px rgba(96,165,250,0.15); }
+.boss-card.ls { border-color: var(--ls); box-shadow: 0 0 20px rgba(74,222,128,0.15); }
+.boss-card.ess { border-color: var(--ess); box-shadow: 0 0 20px rgba(251,146,60,0.15); }
+.boss-card.defeated { opacity: 0.65; }
+.boss-card-top { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+.boss-emoji { font-size: 3.5rem; line-height: 1; flex-shrink: 0; }
+.boss-info h2 { font-size: 1.25rem; margin-bottom: 4px; }
+.dtag {
+  display: inline-block; font-size: 0.7rem; font-weight: 700;
+  padding: 3px 9px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.ps .dtag { background: rgba(96,165,250,.2); color: var(--ps); }
+.ls .dtag { background: rgba(74,222,128,.2); color: var(--ls); }
+.ess .dtag { background: rgba(251,146,60,.2); color: var(--ess); }
+.boss-hp-row { display: flex; align-items: center; gap: 8px; }
+.hp-label-s { font-size: 0.8rem; color: var(--muted); width: 60px; }
+.hp-track-s { flex: 1; height: 10px; background: #0f2040; border-radius: 5px; overflow: hidden; }
+.ps .hp-fill-s { height: 100%; border-radius: 5px; background: var(--ps); width: 100%; }
+.ls .hp-fill-s { height: 100%; border-radius: 5px; background: var(--ls); width: 100%; }
+.ess .hp-fill-s { height: 100%; border-radius: 5px; background: var(--ess); width: 100%; }
+.def-badge {
+  position: absolute; top: 12px; right: 12px;
+  background: var(--gold); color: #1a1a1a;
+  font-size: 0.7rem; font-weight: 700; padding: 3px 9px; border-radius: 10px;
+}
+.back-link-sel {
+  display: block; margin: 0 20px 24px; padding: 14px; text-align: center;
+  background: var(--card); border-radius: var(--r); color: var(--muted);
+  text-decoration: none; font-weight: 600;
+}
+
+/* ── BATTLE ── */
+.battle-top {
+  background: linear-gradient(180deg, #0a0f1a 0%, var(--bg) 100%);
+  padding: 12px 16px; display: flex; align-items: center;
+  justify-content: space-between;
+}
+.back-to-sel { color: var(--muted); font-size: 0.85rem; cursor: pointer; font-weight: 600; }
+.arena { padding: 12px 16px 100px; }
+
+.boss-sec {
+  background: var(--card); border-radius: var(--r);
+  padding: 16px; margin-bottom: 10px; text-align: center;
+  border: 2px solid #1e3a5f;
+}
+.boss-nm { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+.hp-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.hp-lbl { font-size: 0.75rem; color: var(--muted); }
+.hp-track { flex: 1; height: 16px; background: #0f2040; border-radius: 8px; overflow: hidden; border: 1px solid #2a4a6f; }
+.hp-fill {
+  height: 100%; border-radius: 8px;
+  background: linear-gradient(90deg, #ef4444, #f97316);
+  transition: width 0.5s ease;
+}
+.hp-txt { font-size: 0.8rem; color: var(--coral); font-weight: 700; white-space: nowrap; }
+.boss-art {
+  font-size: 5.5rem; display: block; margin: 8px auto 4px;
+  transition: transform 0.1s; line-height: 1;
+}
+.boss-art.hit { animation: bHit 0.4s ease; }
+@keyframes bHit {
+  0%{transform:scale(1);filter:brightness(1)}
+  20%{transform:scale(1.2) rotate(-6deg);filter:brightness(2.5) saturate(3)}
+  60%{transform:scale(0.9) rotate(4deg)}
+  100%{transform:scale(1);filter:brightness(1)}
+}
+.boss-art.rage { animation: bRage 0.35s ease; }
+@keyframes bRage {
+  0%{transform:scale(1)}
+  30%{transform:scale(1.15) rotate(-8deg);filter:brightness(1.8) saturate(2)}
+  70%{transform:scale(1.1) rotate(6deg)}
+  100%{transform:scale(1)}
+}
+
+.player-sec {
+  background: var(--card); border-radius: var(--r);
+  padding: 10px 16px; margin-bottom: 10px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.player-lbl { font-size: 0.85rem; color: var(--muted); }
+.hearts { display: flex; gap: 4px; }
+.heart { font-size: 1.7rem; transition: all 0.3s; }
+.heart.lost { filter: grayscale(1) brightness(0.35); transform: scale(0.75); }
+
+.progress-dots { display: flex; justify-content: center; gap: 6px; margin-bottom: 10px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: #2a4a6f; transition: background 0.3s; }
+.dot.done { background: var(--green); }
+.dot.miss { background: var(--coral); }
+.dot.cur { background: var(--gold); }
+
+.q-card {
+  background: var(--card2); border-radius: var(--r);
+  padding: 16px; margin-bottom: 10px;
+  border: 1px solid #2a4a6f;
+}
+.q-num { font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; }
+.q-txt { font-size: 1rem; line-height: 1.55; font-weight: 600; }
+
+.answers { display: flex; flex-direction: column; gap: 9px; margin-bottom: 10px; }
+.ans-btn {
+  width: 100%; padding: 13px 14px;
+  background: var(--card); border: 2px solid #2a4a6f;
+  border-radius: 12px; color: var(--text);
+  font-size: 0.93rem; font-weight: 500;
+  text-align: left; cursor: pointer; transition: all 0.18s;
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.ans-btn:disabled { cursor: default; }
+.ans-btn.correct { background: rgba(74,222,128,.2); border-color: var(--green); }
+.ans-btn.wrong { background: rgba(248,113,113,.2); border-color: var(--coral); }
+.ans-letter {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: #2a4a6f; display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+}
+.ans-btn.correct .ans-letter { background: var(--green); color: #1a1a1a; }
+.ans-btn.wrong .ans-letter { background: var(--coral); color: #1a1a1a; }
+
+.fb-bar {
+  padding: 12px 14px; border-radius: 12px; margin-bottom: 10px;
+  font-size: 0.88rem; line-height: 1.45; display: none;
+}
+.fb-bar.ok { background: rgba(74,222,128,.12); border: 1px solid var(--green); }
+.fb-bar.bad { background: rgba(248,113,113,.12); border: 1px solid var(--coral); }
+.fb-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; }
+
+.next-btn {
+  width: 100%; padding: 15px;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  border: none; border-radius: 12px;
+  color: white; font-size: 1rem; font-weight: 700;
+  cursor: pointer; display: none;
+}
+
+/* ── RESULT OVERLAY ── */
+.result-ov {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 30px 24px; text-align: center; z-index: 200;
+}
+.result-ov.win { background: linear-gradient(180deg, #071a0f 0%, #0f1923 100%); }
+.result-ov.lose { background: linear-gradient(180deg, #1a0707 0%, #0f1923 100%); }
+.res-emoji { font-size: 5rem; margin-bottom: 14px; }
+.res-title { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+.win .res-title { color: var(--gold); }
+.lose .res-title { color: var(--coral); }
+.res-sub { color: var(--muted); font-size: 1rem; margin-bottom: 20px; line-height: 1.5; }
+.xp-pill {
+  background: rgba(251,191,36,.15); border: 2px solid var(--gold);
+  border-radius: 16px; padding: 10px 24px;
+  font-size: 1.5rem; font-weight: 800; color: var(--gold); margin-bottom: 22px;
+}
+.res-btns { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; }
+.res-btns button, .res-btns a {
+  padding: 16px; border-radius: 12px; font-size: 1rem;
+  font-weight: 700; cursor: pointer; border: none;
+  text-decoration: none; display: block; text-align: center;
+}
+.btn-again { background: var(--card2); color: var(--text); }
+.btn-sel { background: rgba(96,165,250,.15); color: var(--blue); border: 1px solid var(--blue) !important; }
+.btn-hub { background: linear-gradient(135deg, var(--green), var(--blue)); color: #1a1a1a; }
+
+/* ── DAMAGE FLOATERS ── */
+.dmg {
+  position: fixed; font-size: 1.5rem; font-weight: 900;
+  pointer-events: none; z-index: 300;
+  animation: floatUp 0.8s ease forwards;
+}
+.dmg.boss-hit { color: var(--gold); }
+.dmg.player-hit { color: var(--coral); }
+@keyframes floatUp {
+  0%{opacity:1;transform:translateY(0) scale(1)}
+  100%{opacity:0;transform:translateY(-65px) scale(1.6)}
+}
+</style>
+</head>
+<body>
+
+<!-- SELECT SCREEN -->
+<div id="selectScreen" class="screen active">
+  <div class="sel-header">
+    <h1>⚔️ Boss Battle</h1>
+    <p>3 Bosses · 10 Questions Each · 100 XP per Win</p>
+  </div>
+  <div class="boss-grid" id="bossGrid"></div>
+  <a href="index.html" class="back-link-sel">🏠 Back to Hub</a>
+</div>
+
+<!-- BATTLE SCREEN -->
+<div id="battleScreen" class="screen">
+  <div class="battle-top">
+    <span class="back-to-sel" onclick="goToSelect()">← Bosses</span>
+    <span id="domainTag" class="dtag"></span>
+  </div>
+  <div class="arena">
+    <div class="boss-sec">
+      <div class="boss-nm" id="bossNm"></div>
+      <div class="hp-row">
+        <span class="hp-lbl">Boss HP</span>
+        <div class="hp-track"><div class="hp-fill" id="hpFill" style="width:100%"></div></div>
+        <span class="hp-txt" id="hpTxt">10/10</span>
+      </div>
+      <span class="boss-art" id="bossArt"></span>
+    </div>
+
+    <div class="player-sec">
+      <span class="player-lbl">⚡ Your Hearts</span>
+      <div class="hearts" id="hearts"></div>
+    </div>
+
+    <div class="progress-dots" id="pdots"></div>
+
+    <div class="q-card">
+      <div class="q-num" id="qNum"></div>
+      <div class="q-txt" id="qTxt"></div>
+    </div>
+
+    <div class="answers" id="answers"></div>
+    <div class="fb-bar" id="fbBar">
+      <div class="fb-title" id="fbTitle"></div>
+      <div id="fbBody"></div>
+    </div>
+    <button class="next-btn" id="nextBtn" onclick="nextQ()">Next →</button>
+  </div>
+</div>
+
+<script>
+const SAVE_KEY = 'evie_eog_progress';
+const LVL_XP = [0,0,100,250,500,800,1200,1700,2300,3000,4000];
+function loadP(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY));return d||dflt();}catch(e){return dflt();}}
+function dflt(){return{xp:0,level:1,badges:[],domainCorrect:{ps:0,ls:0,ess:0},domainTotal:{ps:0,ls:0,ess:0},battingStats:{atBats:0,hits:0,homeRuns:0},flashcardsMastered:0,lastVisit:null,dailyStreak:0,bossesDefeated:[],scratchPacks:0};}
+function saveP(p){localStorage.setItem(SAVE_KEY,JSON.stringify(p));}
+function calcLvl(xp){for(let i=LVL_XP.length-1;i>=1;i--){if(xp>=LVL_XP[i])return i;}return 1;}
+
+const BOSSES = [
+  {
+    id:'boss_ps', name:'Matter Monster', emoji:'🧪', domain:'ps', label:'Physical Science',
+    questions:[
+      {q:'When ice melts into liquid water, what type of change has occurred?',
+       opts:['Chemical change — a new substance forms','Physical change — water is still H₂O','Nuclear change — atoms are split','Chemical change — energy is lost forever'],
+       ans:1, explain:'Melting is a physical change. The substance (water, H₂O) stays the same — only its state changes from solid to liquid. No new substance is formed!'},
+      {q:'How easily a substance dissolves in water is called its:',
+       opts:['Reactivity','Flammability','Solubility','Density'],
+       ans:2, explain:'Solubility is a physical property describing how well something dissolves in water. Salt has HIGH solubility; sand has very LOW solubility.'},
+      {q:'When all forces on an object are balanced, the object will:',
+       opts:['Speed up toward the biggest force','Slow down and stop','Stay at rest OR keep moving the same way','Spin in a circle'],
+       ans:2, explain:'Balanced forces = NO change in motion! The object stays still if it was still, or keeps moving at the same speed and direction if already moving. (Newton\'s 1st Law!)'},
+      {q:'Which method BEST separates a mixture of iron filings and sand?',
+       opts:['Filtering through paper','Using a magnet','Boiling the mixture','Adding water and letting it settle'],
+       ans:1, explain:'Iron is magnetic, sand is not! A magnet pulls out the iron and leaves the sand. This uses a physical property (magnetism) to separate the mixture.'},
+      {q:'A softball rolling across grass gradually slows down. Which force MAINLY causes this?',
+       opts:['Gravity pulling downward','An applied pushing force','Friction from the grass','Magnetism from Earth'],
+       ans:2, explain:'Friction! When the ball rubs against the grass, friction acts opposite to the direction of motion and slows the ball down. Friction is a contact force.'},
+      {q:'Which of these is an example of a CHEMICAL change?',
+       opts:['Tearing paper into small pieces','Ice melting in a drink','Salt dissolving in water','Burning wood in a campfire'],
+       ans:3, explain:'Burning wood is a chemical change! You get NEW substances: ash, carbon dioxide, and water vapor. Signs of chemical change: light, heat, gas production, color change, new substance!'},
+      {q:'Gravity is an example of what type of force?',
+       opts:['Contact force — objects must touch','Non-contact force — acts at a distance','Friction force — opposes motion','Applied force — a push or pull by a person'],
+       ans:1, explain:'Gravity is a non-contact force. Earth pulls objects toward it WITHOUT physically touching them. Magnetic force and electric force are also non-contact forces!'},
+      {q:'Saltwater is BEST described as a:',
+       opts:['Pure substance with a fixed formula','Chemical compound','Solution (a type of mixture)','New substance from a chemical change'],
+       ans:2, explain:'Saltwater is a solution — a homogeneous mixture where salt (solute) dissolves evenly in water (solvent). You can separate them by evaporation, proving it\'s a mixture!'},
+      {q:'When forces on an object are UNBALANCED, the object will:',
+       opts:['Stay completely still no matter what','Always move in a circle','Change its motion — speed up, slow down, or change direction','Stay at the same speed forever'],
+       ans:2, explain:'Unbalanced forces cause a CHANGE in motion! More push than friction = speeds up. More friction = slows down. Unequal sideways forces = turns. Forces must be balanced to have no change!'},
+      {q:'Which physical property of iron lets you separate iron filings from sand?',
+       opts:['Color — iron looks gray','Density — iron is heavier','Magnetism — iron attracts to magnets','Solubility — iron dissolves'],
+       ans:2, explain:'Magnetism! Sand is NOT magnetic, iron IS. A magnet picks out the iron filings and leaves the sand. Physical properties help us identify AND separate substances.'}
+    ]
+  },
+  {
+    id:'boss_ls', name:'Ecosystem Overlord', emoji:'🌿', domain:'ls', label:'Life Science',
+    questions:[
+      {q:'Which organelle is the "powerhouse of the cell" because it produces energy?',
+       opts:['Cell membrane','Chloroplast','Nucleus','Mitochondria'],
+       ans:3, explain:'Mitochondria! They produce ATP (energy) for the cell by breaking down glucose through cellular respiration. Both plant AND animal cells have mitochondria.'},
+      {q:'Which is an ABIOTIC (non-living) factor in an ecosystem?',
+       opts:['Grass growing in a field','Sunlight hitting the ground','Bacteria in the soil','Rabbits eating plants'],
+       ans:1, explain:'Abiotic = NON-LIVING. Sunlight, water, temperature, soil, and air are abiotic. Biotic factors are the living things. Remember: A-biotic = without life!'},
+      {q:'Which body system delivers oxygen to cells throughout the body?',
+       opts:['Digestive system','Respiratory system','Circulatory system','Nervous system'],
+       ans:2, explain:'The circulatory system! The heart pumps blood through vessels. Blood carries oxygen (picked up in the lungs by the respiratory system) to every cell in the body.'},
+      {q:'In the food chain: Grass → Rabbit → Fox — what role does the rabbit play?',
+       opts:['Producer — makes its own food','Primary consumer — eats the producer','Secondary consumer — eats the primary consumer','Decomposer — breaks down dead matter'],
+       ans:1, explain:'The rabbit is a PRIMARY consumer! It eats the producer (grass) directly. The fox is a secondary consumer (eats the primary consumer). Grass is the producer.'},
+      {q:'Eye color is an example of what kind of trait?',
+       opts:['Acquired — learned from experience','Environmental — caused by surroundings','Inherited — passed from parents through genes','Behavioral — chosen by the organism'],
+       ans:2, explain:'Eye color is INHERITED — it\'s coded in your DNA and passed from parents to offspring through genes. Other inherited traits: hair color, blood type, attached earlobes.'},
+      {q:'Which organelle is found in PLANT cells but NOT in animal cells?',
+       opts:['Mitochondria','Cell membrane','Nucleus','Chloroplast'],
+       ans:3, explain:'Chloroplasts! Plants use them to capture sunlight and make food through photosynthesis. Animal cells can\'t make their own food, so they don\'t need chloroplasts.'},
+      {q:'Brown beetles survive better than green beetles in brown soil. Over many generations, almost all beetles become brown. This is:',
+       opts:['An inherited trait the beetles chose','A learned behavior passed to offspring','Natural selection — better-adapted survive and reproduce','A mutation all beetles decided to get'],
+       ans:2, explain:'Natural selection! Brown beetles were camouflaged in brown soil, so predators ate fewer of them. They survived to reproduce and passed on the "brown" trait. Over time: mostly brown beetles!'},
+      {q:'Which organisms break down dead matter and return nutrients to the soil?',
+       opts:['Producers (plants)','Primary consumers (rabbits)','Apex predators (hawks)','Decomposers (bacteria and fungi)'],
+       ans:3, explain:'Decomposers like bacteria and fungi break down dead organisms, releasing nutrients back into the soil. Plants use those nutrients to grow. Decomposers are ESSENTIAL to every ecosystem\'s recycling!'},
+      {q:'If all frogs in an ecosystem suddenly disappeared, what would MOST LIKELY happen to the grasshopper population?',
+       opts:['Decrease, because frogs protected them','Increase, because fewer frogs eat them','Stay exactly the same','Disappear too'],
+       ans:1, explain:'Grasshoppers would INCREASE! Frogs eat grasshoppers, so without frogs there are fewer predators. This cascade effect shows how one change ripples through the whole food web!'},
+      {q:'What is the MAIN job of the cell membrane?',
+       opts:['Capture sunlight to make food','Produce energy for the cell','Store the cell\'s DNA','Control what enters and exits the cell'],
+       ans:3, explain:'The cell membrane is the gatekeeper! It controls what substances enter and leave the cell, keeping the right chemicals inside. Both plant and animal cells have a cell membrane.'}
+    ]
+  },
+  {
+    id:'boss_ess', name:'Earth Shaker', emoji:'🌋', domain:'ess', label:'Earth Science',
+    questions:[
+      {q:'Water vapor cools and turns into liquid droplets to form clouds. This process is called:',
+       opts:['Evaporation','Precipitation','Transpiration','Condensation'],
+       ans:3, explain:'Condensation! When warm moist air rises and cools, water vapor (gas) becomes tiny liquid droplets. These droplets form clouds. You also see condensation on a cold glass of water!'},
+      {q:'Which type of rock would MOST LIKELY contain fossils?',
+       opts:['Igneous rock','Metamorphic rock','Sedimentary rock','Volcanic basalt'],
+       ans:2, explain:'Sedimentary rock! It forms when layers of sediment (sand, mud, shells) are compressed. Organisms get buried between layers and preserved as fossils. Igneous and metamorphic form under intense heat, destroying fossils.'},
+      {q:'Which layer of the Earth generates the planet\'s magnetic field?',
+       opts:['The crust (outer layer)','The mantle (middle layer)','The inner core (solid center)','The outer core (liquid iron layer)'],
+       ans:3, explain:'The outer core! It\'s liquid iron and nickel. As it moves, electric currents create Earth\'s magnetic field. This protects us from harmful solar radiation and makes compasses work!'},
+      {q:'What is the MAIN energy source that drives the water cycle?',
+       opts:['Wind blowing across the surface','The Moon\'s gravitational pull','The Sun\'s heat energy','Ocean currents deep underwater'],
+       ans:2, explain:'The Sun! Solar energy heats water causing evaporation. The Sun powers the entire water cycle — evaporation, condensation, and precipitation all depend on it.'},
+      {q:'Wind and water slowly breaking rocks into smaller pieces over time is called:',
+       opts:['Deposition — dropping sediment','Weathering — breaking down rocks','Erosion — moving sediment','Sedimentation — building layers'],
+       ans:1, explain:'Weathering! It breaks rocks into smaller pieces. Then erosion MOVES those pieces elsewhere. Think: weathering FIRST (breaks), erosion SECOND (moves), deposition THIRD (drops).'},
+      {q:'Climate is BEST described as:',
+       opts:['Today\'s weather (sunny, rainy, windy)','A single severe storm event','Weather in one specific week','Average weather patterns over 30+ years'],
+       ans:3, explain:'"Climate is what you expect, weather is what you get!" Climate = long-term averages (30+ years) for a region. Weather = what happens day-to-day.'},
+      {q:'Igneous rock forms when:',
+       opts:['Sediment layers are compressed over time','Rocks change from heat and pressure underground','Molten lava or magma cools and hardens','Water dissolves minerals from existing rock'],
+       ans:2, explain:'"Igneous" comes from the Latin word for fire. Lava cooling above ground = fine-grained (basalt). Magma cooling slowly underground = coarse-grained (granite).'},
+      {q:'Which layer of the Earth is the THINNEST?',
+       opts:['Mantle — thick middle layer','Outer core — liquid iron','Inner core — solid center','Crust — outermost layer'],
+       ans:3, explain:'The crust is the thinnest layer! Oceanic crust = ~5-10 km. Continental crust = ~30-50 km. The mantle below is ~2,900 km thick. The crust is like the skin of an apple!'},
+      {q:'When plants release water vapor through tiny pores in their leaves, this is called:',
+       opts:['Evaporation — liquid turning to vapor','Condensation — vapor turning to liquid','Precipitation — water falling from clouds','Transpiration — plants releasing water vapor'],
+       ans:3, explain:'Transpiration! Plants absorb water through roots, use it for photosynthesis, and release excess water vapor through stomata (pores in leaves). It adds water vapor to the atmosphere!'},
+      {q:'Which type of rock forms when existing rocks are changed by EXTREME HEAT AND PRESSURE underground?',
+       opts:['Igneous — from cooled lava','Sedimentary — from compressed layers','Metamorphic — changed by heat and pressure','Pumice — from volcanoes'],
+       ans:2, explain:'"Metamorphic" means changed form! When rocks are buried deep with intense heat and pressure (but don\'t fully melt), they transform. Marble = metamorphic limestone. Slate = metamorphic shale.'}
+    ]
+  }
+];
+
+// ── BATTLE STATE ──
+let activeBoss = null, curQ = 0, bossHP = 10, hearts = 3;
+let answered = false, correctLog = [];
+
+function loadSelectScreen() {
+  const p = loadP();
+  const grid = document.getElementById('bossGrid');
+  grid.innerHTML = '';
+  BOSSES.forEach(boss => {
+    const def = p.bossesDefeated && p.bossesDefeated.includes(boss.id);
+    const el = document.createElement('div');
+    el.className = `boss-card ${boss.domain}${def ? ' defeated' : ''}`;
+    el.innerHTML = `
+      ${def ? '<div class="def-badge">✅ Defeated!</div>' : ''}
+      <div class="boss-card-top">
+        <span class="boss-emoji">${boss.emoji}</span>
+        <div class="boss-info"><h2>${boss.name}</h2><span class="dtag">${boss.label}</span></div>
+      </div>
+      <div class="boss-hp-row">
+        <span class="hp-label-s">💔 10 HP</span>
+        <div class="hp-track-s"><div class="hp-fill-s"></div></div>
+      </div>`;
+    el.onclick = () => startBattle(boss);
+    grid.appendChild(el);
+  });
+}
+
+function startBattle(boss) {
+  activeBoss = boss;
+  curQ = 0; bossHP = 10; hearts = 3; answered = false; correctLog = [];
+  document.getElementById('bossNm').textContent = boss.name;
+  document.getElementById('bossArt').textContent = boss.emoji;
+  const colors = {ps:'#60a5fa', ls:'#4ade80', ess:'#fb923c'};
+  const dt = document.getElementById('domainTag');
+  dt.textContent = boss.label;
+  dt.style.cssText = `background:rgba(${boss.domain==='ps'?'96,165,250':boss.domain==='ls'?'74,222,128':'251,146,60'},.2);color:${colors[boss.domain]};font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:10px;text-transform:uppercase;letter-spacing:.5px`;
+  showScreen('battleScreen');
+  renderQ();
+}
+
+function renderQ() {
+  const q = activeBoss.questions[curQ];
+  const hpPct = (bossHP / 10) * 100;
+  document.getElementById('hpFill').style.width = hpPct + '%';
+  document.getElementById('hpTxt').textContent = `${bossHP}/10`;
+
+  const heartsEl = document.getElementById('hearts');
+  heartsEl.innerHTML = [0,1,2].map(i => `<span class="heart${i>=hearts?' lost':''}">❤️</span>`).join('');
+
+  const dots = document.getElementById('pdots');
+  dots.innerHTML = activeBoss.questions.map((_,i) => {
+    let cls = 'dot';
+    if (i < curQ) cls += correctLog[i] ? ' done' : ' miss';
+    else if (i === curQ) cls += ' cur';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+
+  document.getElementById('qNum').textContent = `Question ${curQ+1} of ${activeBoss.questions.length}`;
+  document.getElementById('qTxt').textContent = q.q;
+
+  const answersEl = document.getElementById('answers');
+  answersEl.innerHTML = ['A','B','C','D'].map((ltr,i) =>
+    `<button class="ans-btn" onclick="pick(${i})">
+      <span class="ans-letter">${ltr}</span><span>${q.opts[i]}</span>
+    </button>`
+  ).join('');
+
+  const fb = document.getElementById('fbBar');
+  fb.style.display = 'none';
+  fb.className = 'fb-bar';
+  document.getElementById('nextBtn').style.display = 'none';
+  answered = false;
+  window.scrollTo(0, 0);
+}
+
+function pick(idx) {
+  if (answered) return;
+  answered = true;
+  const q = activeBoss.questions[curQ];
+  const btns = document.querySelectorAll('.ans-btn');
+  btns.forEach(b => b.disabled = true);
+  const correct = idx === q.ans;
+  btns[idx].classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) btns[q.ans].classList.add('correct');
+
+  const fb = document.getElementById('fbBar');
+  fb.style.display = 'block';
+
+  const p = loadP();
+  p.domainTotal[activeBoss.domain] = (p.domainTotal[activeBoss.domain]||0) + 1;
+
+  if (correct) {
+    bossHP--;
+    correctLog[curQ] = true;
+    fb.className = 'fb-bar ok';
+    document.getElementById('fbTitle').textContent = '⚡ Critical Hit! Boss takes 1 damage';
+    document.getElementById('fbBody').textContent = q.explain;
+    const art = document.getElementById('bossArt');
+    art.classList.add('hit');
+    setTimeout(() => art.classList.remove('hit'), 400);
+    spawnDmg('-1 HP 💥', true);
+    p.domainCorrect[activeBoss.domain] = (p.domainCorrect[activeBoss.domain]||0) + 1;
+    document.getElementById('hpFill').style.width = ((bossHP/10)*100) + '%';
+    document.getElementById('hpTxt').textContent = `${bossHP}/10`;
+    if (bossHP <= 0) { saveP(p); setTimeout(showWin, 800); return; }
+  } else {
+    hearts--;
+    correctLog[curQ] = false;
+    fb.className = 'fb-bar bad';
+    document.getElementById('fbTitle').textContent = '💥 Boss Attack! You lose a heart';
+    document.getElementById('fbBody').textContent = q.explain;
+    const art = document.getElementById('bossArt');
+    art.classList.add('rage');
+    setTimeout(() => art.classList.remove('rage'), 350);
+    spawnDmg('💔 Ouch!', false);
+    const heartsEl = document.getElementById('hearts');
+    heartsEl.innerHTML = [0,1,2].map(i => `<span class="heart${i>=hearts?' lost':''}">❤️</span>`).join('');
+    if (hearts <= 0) { saveP(p); setTimeout(showLose, 800); return; }
+  }
+  saveP(p);
+  document.getElementById('nextBtn').style.display = 'block';
+}
+
+function nextQ() {
+  curQ++;
+  if (curQ >= activeBoss.questions.length) { showLose(); return; }
+  renderQ();
+}
+
+function showWin() {
+  const p = loadP();
+  const alreadyDef = p.bossesDefeated && p.bossesDefeated.includes(activeBoss.id);
+  let xp = alreadyDef ? 25 : 100;
+  p.xp = (p.xp||0) + xp;
+  p.level = calcLvl(p.xp);
+  if (!alreadyDef) {
+    if (!p.bossesDefeated) p.bossesDefeated = [];
+    p.bossesDefeated.push(activeBoss.id);
+    if (!p.badges) p.badges = [];
+    if (!p.badges.includes(activeBoss.id)) p.badges.push(activeBoss.id);
+    if (p.bossesDefeated.length >= 3 && !p.badges.includes('eog_champ')) {
+      p.badges.push('eog_champ'); xp += 200; p.xp += 200;
+    }
+  }
+  saveP(p);
+  spawnOverlay('win',
+    activeBoss.emoji,
+    'BOSS DEFEATED! 🏆',
+    alreadyDef ? 'Rematch bonus earned! You crushed it!' : `New badge unlocked: ${activeBoss.name} Slayer! 🏆`,
+    `+${xp} XP ⚡`,
+    `<button class="btn-again" onclick="removeOverlay();startBattle(activeBoss)">🔄 Rematch</button>
+     <button class="btn-sel" onclick="removeOverlay();goToSelect()">⚔️ Choose Boss</button>
+     <a class="btn-hub" href="index.html">🏠 Hub</a>`
+  );
+}
+
+function showLose() {
+  spawnOverlay('lose',
+    '💀',
+    'DEFEATED!',
+    `${activeBoss.name} was too strong this time!\nStudy those answers and try again — you've got this! 💪`,
+    '',
+    `<button class="btn-again" onclick="removeOverlay();startBattle(activeBoss)">🔄 Try Again</button>
+     <button class="btn-sel" onclick="removeOverlay();goToSelect()">⚔️ Choose Boss</button>
+     <a class="btn-hub" href="index.html">🏠 Hub</a>`
+  );
+}
+
+function spawnOverlay(type, emoji, title, sub, xpStr, btns) {
+  document.querySelectorAll('.result-ov').forEach(e => e.remove());
+  const d = document.createElement('div');
+  d.className = `result-ov ${type}`;
+  d.innerHTML = `
+    <div class="res-emoji">${emoji}</div>
+    <div class="res-title">${title}</div>
+    <div class="res-sub">${sub}</div>
+    ${xpStr ? `<div class="xp-pill">${xpStr}</div>` : ''}
+    <div class="res-btns">${btns}</div>`;
+  document.body.appendChild(d);
+}
+function removeOverlay() { document.querySelectorAll('.result-ov').forEach(e => e.remove()); }
+
+function spawnDmg(txt, isBoss) {
+  const el = document.createElement('div');
+  el.className = `dmg ${isBoss ? 'boss-hit' : 'player-hit'}`;
+  el.textContent = txt;
+  el.style.cssText = `left:${isBoss?'45%':'25%'};top:${isBoss?'18%':'42%'};transform:translateX(-50%)`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 850);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+function goToSelect() { showScreen('selectScreen'); loadSelectScreen(); }
+
+loadSelectScreen();
+</script>
+</body>
+</html>

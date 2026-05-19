@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Food Web Builder 🌿</title>
+<style>
+:root {
+  --bg: #0f1923; --card: #1a2940; --card2: #1e3050;
+  --green: #4ade80; --blue: #60a5fa; --coral: #f87171;
+  --gold: #fbbf24; --purple: #a78bfa; --orange: #fb923c;
+  --text: #e0f2fe; --muted: #94a3b8; --r: 16px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 40px; }
+
+.top-bar {
+  background: var(--card); padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid #1e3a5f; position: sticky; top: 0; z-index: 20;
+}
+.top-bar a { color: var(--muted); font-size: 0.85rem; text-decoration: none; font-weight: 600; }
+.top-bar h1 { font-size: 1rem; font-weight: 700; flex: 1; text-align: center; }
+.top-bar .xp-chip { font-size: 0.85rem; color: var(--gold); font-weight: 600; }
+
+.instruction-bar {
+  background: var(--card2); padding: 10px 16px; text-align: center;
+  font-size: 0.88rem; color: var(--text); border-bottom: 1px solid #1e3a5f;
+}
+.instruction-bar strong { color: var(--green); }
+
+/* Progress */
+.progress-row { padding: 8px 16px; display: flex; align-items: center; gap: 8px; }
+.prog-label { font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+.prog-track { flex: 1; height: 8px; background: #0f2040; border-radius: 4px; overflow: hidden; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--blue)); border-radius: 4px; transition: width 0.5s ease; }
+.prog-count { font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+
+/* SVG canvas */
+.web-container { padding: 0 12px; position: relative; }
+.web-svg { width: 100%; max-width: 360px; display: block; margin: 0 auto; }
+
+/* Organism nodes */
+.org-group { cursor: pointer; }
+.org-circle {
+  fill: var(--card); stroke: #2a4a6f; stroke-width: 2;
+  transition: all 0.2s;
+}
+.org-group.selected .org-circle { stroke: var(--gold); stroke-width: 3; filter: drop-shadow(0 0 8px rgba(251,191,36,.6)); }
+.org-group.connected .org-circle { stroke: var(--green); stroke-width: 2.5; }
+.org-label { font-size: 9px; fill: var(--muted); text-anchor: middle; pointer-events: none; font-family: system-ui; }
+.org-emoji { font-size: 22px; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+
+/* Arrows */
+.web-arrow { stroke: var(--green); stroke-width: 2.5; fill: none; opacity: 0; transition: opacity 0.4s; }
+.web-arrow.visible { opacity: 1; }
+
+/* Feedback strip */
+.feedback-strip {
+  margin: 10px 16px 0; padding: 10px 14px; border-radius: 12px;
+  font-size: 0.88rem; line-height: 1.4; min-height: 44px;
+  display: flex; align-items: center; gap: 8px;
+}
+.feedback-strip.idle { background: rgba(30,48,80,.5); color: var(--muted); }
+.feedback-strip.ok { background: rgba(74,222,128,.12); border: 1px solid var(--green); color: var(--text); }
+.feedback-strip.bad { background: rgba(248,113,113,.12); border: 1px solid var(--coral); color: var(--text); }
+.feedback-strip.info { background: rgba(96,165,250,.12); border: 1px solid var(--blue); color: var(--text); }
+.fb-icon { font-size: 1.3rem; flex-shrink: 0; }
+
+/* What If section */
+.whatif-section { padding: 16px; }
+.whatif-section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; color: var(--gold); }
+.whatif-section p { font-size: 0.85rem; color: var(--muted); margin-bottom: 16px; }
+.whatif-q {
+  background: var(--card); border-radius: var(--r);
+  padding: 16px; margin-bottom: 12px; border: 1px solid #2a4a6f;
+}
+.whatif-scenario {
+  font-size: 0.85rem; color: var(--orange); font-weight: 700;
+  margin-bottom: 6px;
+}
+.whatif-q .q-txt { font-size: 0.95rem; font-weight: 600; line-height: 1.45; margin-bottom: 10px; }
+.wif-opts { display: flex; flex-direction: column; gap: 7px; }
+.wif-btn {
+  width: 100%; padding: 11px 12px; background: var(--card2);
+  border: 2px solid #2a4a6f; border-radius: 10px;
+  color: var(--text); font-size: 0.88rem; text-align: left;
+  cursor: pointer; transition: all 0.18s; display: flex; gap: 8px; align-items: center;
+}
+.wif-btn:disabled { cursor: default; }
+.wif-btn.correct { background: rgba(74,222,128,.2); border-color: var(--green); }
+.wif-btn.wrong { background: rgba(248,113,113,.2); border-color: var(--coral); }
+.wif-ltr { width: 22px; height: 22px; border-radius: 50%; background: #2a4a6f; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; }
+.wif-btn.correct .wif-ltr { background: var(--green); color: #1a1a1a; }
+.wif-btn.wrong .wif-ltr { background: var(--coral); color: #1a1a1a; }
+.wif-explain { font-size: 0.83rem; color: var(--muted); margin-top: 6px; padding: 8px 10px; background: rgba(255,255,255,.04); border-radius: 8px; display: none; line-height: 1.4; }
+
+/* Complete banner */
+.complete-banner {
+  margin: 12px 16px; padding: 18px 16px; text-align: center;
+  background: linear-gradient(135deg, rgba(74,222,128,.15), rgba(96,165,250,.1));
+  border: 2px solid var(--green); border-radius: var(--r);
+  display: none;
+}
+.complete-banner h2 { font-size: 1.3rem; color: var(--green); margin-bottom: 4px; }
+.complete-banner p { font-size: 0.85rem; color: var(--muted); }
+.xp-pill { display: inline-block; background: rgba(251,191,36,.15); border: 2px solid var(--gold); border-radius: 12px; padding: 6px 16px; font-size: 1.2rem; font-weight: 800; color: var(--gold); margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a href="index.html">🏠</a>
+  <h1>🌿 Food Web Builder</h1>
+  <span class="xp-chip" id="xpChip">0 XP</span>
+</div>
+
+<div class="instruction-bar" id="instruction">
+  Tap <strong>PREY</strong> first, then tap <strong>PREDATOR</strong> to connect them
+</div>
+
+<div class="progress-row">
+  <span class="prog-label">Connections</span>
+  <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+  <span class="prog-count" id="progCount">0 / 7</span>
+</div>
+
+<div class="web-container">
+  <svg class="web-svg" viewBox="0 0 310 370" xmlns="http://www.w3.org/2000/svg" id="webSvg">
+    <!-- Background scene -->
+    <rect width="310" height="370" fill="#0a1520"/>
+    <!-- Sky gradient -->
+    <defs>
+      <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#0a1a30"/>
+        <stop offset="60%" stop-color="#0a1520"/>
+        <stop offset="100%" stop-color="#1a2a0f"/>
+      </linearGradient>
+      <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#4ade80"/>
+      </marker>
+    </defs>
+    <rect width="310" height="370" fill="url(#skyGrad)"/>
+    <!-- Ground -->
+    <rect x="0" y="320" width="310" height="50" fill="#0f2010" rx="0"/>
+
+    <!-- ── ARROW LINES (drawn behind nodes) ── -->
+    <!-- Lines are: Sun→Grass, Grass→Grasshopper, Grass→Rabbit, Grasshopper→Frog, Frog→Snake, Snake→Hawk, Rabbit→Hawk -->
+    <line id="arr-sun-grass"    class="web-arrow" marker-end="url(#arrowhead)" x1="56" y1="305" x2="136" y2="295"/>
+    <line id="arr-grass-ghop"   class="web-arrow" marker-end="url(#arrowhead)" x1="143" y1="282" x2="85" y2="222"/>
+    <line id="arr-grass-rabbit" class="web-arrow" marker-end="url(#arrowhead)" x1="165" y1="282" x2="228" y2="222"/>
+    <line id="arr-ghop-frog"    class="web-arrow" marker-end="url(#arrowhead)" x1="68" y1="200" x2="65" y2="148"/>
+    <line id="arr-frog-snake"   class="web-arrow" marker-end="url(#arrowhead)" x1="82" y1="133" x2="130" y2="108"/>
+    <line id="arr-snake-hawk"   class="web-arrow" marker-end="url(#arrowhead)" x1="155" y1="88" x2="155" y2="55"/>
+    <line id="arr-rabbit-hawk"  class="web-arrow" marker-end="url(#arrowhead)" x1="237" y1="195" x2="168" y2="55"/>
+
+    <!-- ── ORGANISMS ── -->
+    <!-- Hawk (apex) -->
+    <g class="org-group" id="org-hawk" onclick="selectOrg('hawk')">
+      <circle class="org-circle" cx="155" cy="38" r="26"/>
+      <text class="org-emoji" x="155" y="38">🦅</text>
+      <text class="org-label" x="155" y="70">Hawk</text>
+    </g>
+    <!-- Snake -->
+    <g class="org-group" id="org-snake" onclick="selectOrg('snake')">
+      <circle class="org-circle" cx="155" cy="105" r="24"/>
+      <text class="org-emoji" x="155" y="105">🐍</text>
+      <text class="org-label" x="155" y="135">Snake</text>
+    </g>
+    <!-- Frog -->
+    <g class="org-group" id="org-frog" onclick="selectOrg('frog')">
+      <circle class="org-circle" cx="65" cy="130" r="24"/>
+      <text class="org-emoji" x="65" y="130">🐸</text>
+      <text class="org-label" x="65" y="160">Frog</text>
+    </g>
+    <!-- Rabbit -->
+    <g class="org-group" id="org-rabbit" onclick="selectOrg('rabbit')">
+      <circle class="org-circle" cx="245" cy="210" r="24"/>
+      <text class="org-emoji" x="245" y="210">🐰</text>
+      <text class="org-label" x="245" y="240">Rabbit</text>
+    </g>
+    <!-- Grasshopper -->
+    <g class="org-group" id="org-grasshopper" onclick="selectOrg('grasshopper')">
+      <circle class="org-circle" cx="68" cy="205" r="24"/>
+      <text class="org-emoji" x="68" y="205">🦗</text>
+      <text class="org-label" x="68" y="235">Grasshopper</text>
+    </g>
+    <!-- Grass -->
+    <g class="org-group" id="org-grass" onclick="selectOrg('grass')">
+      <circle class="org-circle" cx="155" cy="295" r="24"/>
+      <text class="org-emoji" x="155" y="295">🌿</text>
+      <text class="org-label" x="155" y="325">Grass</text>
+    </g>
+    <!-- Sun -->
+    <g class="org-group" id="org-sun" onclick="selectOrg('sun')">
+      <circle class="org-circle" cx="48" cy="305" r="24"/>
+      <text class="org-emoji" x="48" y="305">☀️</text>
+      <text class="org-label" x="48" y="336">Sun</text>
+    </g>
+    <!-- Mushroom -->
+    <g class="org-group" id="org-mushroom" onclick="selectOrg('mushroom')">
+      <circle class="org-circle" cx="265" cy="295" r="24"/>
+      <text class="org-emoji" x="265" y="295">🍄</text>
+      <text class="org-label" x="265" y="325">Mushroom</text>
+    </g>
+  </svg>
+</div>
+
+<div class="feedback-strip idle" id="feedbackStrip">
+  <span class="fb-icon">👆</span>
+  <span id="feedbackText">Tap an organism to start. Tap PREY first, then its PREDATOR.</span>
+</div>
+
+<div class="complete-banner" id="completeBanner">
+  <h2>🌿 Food Web Complete! 🎉</h2>
+  <p>You connected all 7 relationships correctly!</p>
+  <div class="xp-pill">+50 XP ⚡</div>
+  <p style="margin-top:8px;font-size:.85rem;color:var(--muted)">Now test your knowledge with "What If?" scenarios below!</p>
+</div>
+
+<!-- What If section -->
+<div class="whatif-section" id="whatifSection" style="display:none">
+  <h2>🤔 What If?</h2>
+  <p>Use your food web knowledge to predict what happens!</p>
+
+  <div class="whatif-q" id="wq1">
+    <div class="whatif-scenario">⚠️ Scenario 1: Frogs disappear!</div>
+    <div class="q-txt">All the frogs in this ecosystem suddenly disappear from a disease. What would MOST LIKELY happen to the grasshopper population?</div>
+    <div class="wif-opts" id="wo1">
+      <button class="wif-btn" onclick="wifPick(1,0)"><span class="wif-ltr">A</span>Decrease, because frogs helped protect them</button>
+      <button class="wif-btn" onclick="wifPick(1,1)"><span class="wif-ltr">B</span>Increase, because fewer frogs would eat them</button>
+      <button class="wif-btn" onclick="wifPick(1,2)"><span class="wif-ltr">C</span>Stay exactly the same</button>
+      <button class="wif-btn" onclick="wifPick(1,3)"><span class="wif-ltr">D</span>Also disappear right away</button>
+    </div>
+    <div class="wif-explain" id="we1">🐸 Frogs eat grasshoppers. Remove frogs → grasshoppers face less predation → grasshopper population INCREASES. This cascade effect shows how removing one organism affects the whole web!</div>
+  </div>
+
+  <div class="whatif-q" id="wq2">
+    <div class="whatif-scenario">⚠️ Scenario 2: Grass is destroyed!</div>
+    <div class="q-txt">A drought kills most of the grass in the ecosystem. Which organism would be MOST DIRECTLY affected first?</div>
+    <div class="wif-opts" id="wo2">
+      <button class="wif-btn" onclick="wifPick(2,0)"><span class="wif-ltr">A</span>Hawk — the apex predator at the top</button>
+      <button class="wif-btn" onclick="wifPick(2,1)"><span class="wif-ltr">B</span>Snake — it eats frogs and rabbits</button>
+      <button class="wif-btn" onclick="wifPick(2,2)"><span class="wif-ltr">C</span>Grasshopper and Rabbit — they eat grass directly</button>
+      <button class="wif-btn" onclick="wifPick(2,3)"><span class="wif-ltr">D</span>Mushroom — it breaks down dead organisms</button>
+    </div>
+    <div class="wif-explain" id="we2">🌿 Grasshoppers and rabbits are PRIMARY CONSUMERS — they eat grass directly. Remove the grass (producer) and they lose their food source immediately. Effects then cascade UP the food web to frogs, snakes, and hawks.</div>
+  </div>
+
+  <div class="whatif-q" id="wq3">
+    <div class="whatif-scenario">⚠️ Scenario 3: Who's the decomposer?</div>
+    <div class="q-txt">Which organism in this food web is a DECOMPOSER, and what is its role?</div>
+    <div class="wif-opts" id="wo3">
+      <button class="wif-btn" onclick="wifPick(3,0)"><span class="wif-ltr">A</span>Hawk — it's at the top, so it "decomposes" the food web</button>
+      <button class="wif-btn" onclick="wifPick(3,1)"><span class="wif-ltr">B</span>Grasshopper — it breaks down grass</button>
+      <button class="wif-btn" onclick="wifPick(3,2)"><span class="wif-ltr">C</span>Mushroom — it breaks down dead organisms and returns nutrients to soil</button>
+      <button class="wif-btn" onclick="wifPick(3,3)"><span class="wif-ltr">D</span>Snake — it breaks down rabbits and frogs</button>
+    </div>
+    <div class="wif-explain" id="we3">🍄 The mushroom is a DECOMPOSER. Decomposers (fungi, bacteria) break down dead organisms and return nutrients to the soil. Without decomposers, dead matter would pile up and nutrients would never be recycled back to producers like grass!</div>
+  </div>
+
+  <div style="padding:0 0 10px;text-align:center">
+    <a href="index.html" style="display:inline-block;padding:14px 28px;background:linear-gradient(135deg,var(--green),var(--blue));border-radius:12px;color:#1a1a1a;font-weight:700;text-decoration:none;font-size:1rem;">🏠 Back to Hub</a>
+  </div>
+</div>
+
+<script>
+const SAVE_KEY = 'evie_eog_progress';
+const LVL_XP = [0,0,100,250,500,800,1200,1700,2300,3000,4000];
+function loadP(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY));return d||dflt();}catch(e){return dflt();}}
+function dflt(){return{xp:0,level:1,badges:[],domainCorrect:{ps:0,ls:0,ess:0},domainTotal:{ps:0,ls:0,ess:0},battingStats:{atBats:0,hits:0,homeRuns:0},flashcardsMastered:0,lastVisit:null,dailyStreak:0,bossesDefeated:[],scratchPacks:0};}
+function saveP(p){localStorage.setItem(SAVE_KEY,JSON.stringify(p));}
+function calcLvl(xp){for(let i=LVL_XP.length-1;i>=1;i--){if(xp>=LVL_XP[i])return i;}return 1;}
+
+// Valid connections: [prey, predator, arrowId, explanation]
+const VALID_CONNECTIONS = [
+  ['sun',   'grass',       'arr-sun-grass',    'The Sun provides energy for Grass through photosynthesis! ☀️→🌿'],
+  ['grass', 'grasshopper', 'arr-grass-ghop',   'Grasshoppers eat Grass — they are PRIMARY CONSUMERS! 🌿→🦗'],
+  ['grass', 'rabbit',      'arr-grass-rabbit',  'Rabbits eat Grass — they are also PRIMARY CONSUMERS! 🌿→🐰'],
+  ['grasshopper','frog',   'arr-ghop-frog',    'Frogs eat Grasshoppers — Frog is a SECONDARY CONSUMER! 🦗→🐸'],
+  ['frog',  'snake',       'arr-frog-snake',   'Snakes eat Frogs — Snake is a SECONDARY/TERTIARY CONSUMER! 🐸→🐍'],
+  ['snake', 'hawk',        'arr-snake-hawk',   'Hawks eat Snakes — Hawk is the APEX PREDATOR! 🐍→🦅'],
+  ['rabbit','hawk',        'arr-rabbit-hawk',  'Hawks also eat Rabbits! Hawks are at the TOP of this food web! 🐰→🦅'],
+];
+
+const ORG_INFO = {
+  sun:         {name:'Sun',         role:'Energy source — powers photosynthesis'},
+  grass:       {name:'Grass',       role:'Producer — makes food from sunlight'},
+  grasshopper: {name:'Grasshopper', role:'Primary consumer — eats grass'},
+  rabbit:      {name:'Rabbit',      role:'Primary consumer — eats grass'},
+  frog:        {name:'Frog',        role:'Secondary consumer — eats grasshoppers'},
+  snake:       {name:'Snake',       role:'Secondary/tertiary consumer — eats frogs'},
+  hawk:        {name:'Hawk',        role:'Apex predator — eats snakes and rabbits'},
+  mushroom:    {name:'Mushroom',    role:'Decomposer — breaks down dead organisms'},
+};
+
+let selectedOrg = null;
+let connected = new Set();
+let earnedXP = 0;
+
+const WIF_ANSWERS = {1:1, 2:2, 3:2};
+const wifAnswered = {};
+
+function setFeedback(type, icon, text) {
+  const strip = document.getElementById('feedbackStrip');
+  strip.className = `feedback-strip ${type}`;
+  document.getElementById('feedbackStrip').innerHTML = `<span class="fb-icon">${icon}</span><span>${text}</span>`;
+}
+
+function selectOrg(id) {
+  if (selectedOrg === null) {
+    // First tap: select as prey
+    selectedOrg = id;
+    document.querySelectorAll('.org-group').forEach(g => g.classList.remove('selected'));
+    document.getElementById('org-' + id).classList.add('selected');
+    const info = ORG_INFO[id];
+    setFeedback('info', '✅', `Selected: <strong>${info.name}</strong> (${info.role}). Now tap what eats it!`);
+  } else {
+    if (selectedOrg === id) {
+      // Deselect
+      selectedOrg = null;
+      document.getElementById('org-' + id).classList.remove('selected');
+      setFeedback('idle', '👆', 'Tap an organism to start. Tap PREY first, then its PREDATOR.');
+      return;
+    }
+    // Second tap: try to connect selectedOrg → id
+    const prey = selectedOrg;
+    const predator = id;
+    document.querySelectorAll('.org-group').forEach(g => g.classList.remove('selected'));
+    selectedOrg = null;
+
+    const connKey = prey + '->' + predator;
+    if (connected.has(connKey)) {
+      setFeedback('info', 'ℹ️', `Already connected! ${ORG_INFO[prey].name} → ${ORG_INFO[predator].name} is already in your web.`);
+      return;
+    }
+
+    // Check if this is a valid connection
+    const match = VALID_CONNECTIONS.find(c => c[0] === prey && c[1] === predator);
+    if (match) {
+      connected.add(connKey);
+      document.getElementById(match[2]).classList.add('visible');
+      document.getElementById('org-' + prey).classList.add('connected');
+      document.getElementById('org-' + predator).classList.add('connected');
+      earnedXP += 7;
+      document.getElementById('xpChip').textContent = earnedXP + ' XP';
+      setFeedback('ok', '🎉', match[3]);
+      updateProgress();
+      if (connected.size >= VALID_CONNECTIONS.length) {
+        setTimeout(completeWeb, 600);
+      }
+    } else if (VALID_CONNECTIONS.find(c => c[0] === predator && c[1] === prey)) {
+      // Reversed connection!
+      setFeedback('bad', '🔄', `Almost! But it\'s reversed — <strong>${ORG_INFO[predator].name} eats ${ORG_INFO[prey].name}</strong>, not the other way around. Tap PREY first, then PREDATOR!`);
+    } else if (id === 'mushroom' || prey === 'mushroom') {
+      setFeedback('info', '🍄', 'Mushroom is a DECOMPOSER — it breaks down ALL dead organisms and returns nutrients to soil! It\'s not directly in the food chain but vital to the ecosystem.');
+    } else {
+      setFeedback('bad', '❌', `${ORG_INFO[prey].name} and ${ORG_INFO[predator].name} don\'t have a direct predator-prey relationship in this food web. Try another pair!`);
+    }
+  }
+}
+
+function updateProgress() {
+  const n = connected.size;
+  const total = VALID_CONNECTIONS.length;
+  document.getElementById('progFill').style.width = (n / total * 100) + '%';
+  document.getElementById('progCount').textContent = `${n} / ${total}`;
+}
+
+function completeWeb() {
+  const p = loadP();
+  p.xp = (p.xp||0) + 50;
+  p.level = calcLvl(p.xp);
+  p.domainCorrect.ls = (p.domainCorrect.ls||0) + 7;
+  p.domainTotal.ls = (p.domainTotal.ls||0) + 7;
+  if (!p.badges) p.badges = [];
+  if (!p.badges.includes('food_web')) p.badges.push('food_web');
+  saveP(p);
+  earnedXP += 1; // already gave 7×7=49 XP
+  document.getElementById('xpChip').textContent = '50 XP';
+  document.getElementById('completeBanner').style.display = 'block';
+  document.getElementById('whatifSection').style.display = 'block';
+  document.getElementById('instruction').textContent = '🎉 Food web complete! Try the "What If?" scenarios below!';
+  document.getElementById('completeBanner').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function wifPick(qNum, ansIdx) {
+  if (wifAnswered[qNum]) return;
+  wifAnswered[qNum] = true;
+  const correct = WIF_ANSWERS[qNum];
+  const btns = document.getElementById('wo' + qNum).querySelectorAll('.wif-btn');
+  btns.forEach(b => b.disabled = true);
+  btns[ansIdx].classList.add(ansIdx === correct ? 'correct' : 'wrong');
+  if (ansIdx !== correct) btns[correct].classList.add('correct');
+  document.getElementById('we' + qNum).style.display = 'block';
+
+  const p = loadP();
+  p.domainTotal.ls = (p.domainTotal.ls||0) + 1;
+  if (ansIdx === correct) {
+    p.domainCorrect.ls = (p.domainCorrect.ls||0) + 1;
+    earnedXP += 5;
+    document.getElementById('xpChip').textContent = earnedXP + ' XP';
+  }
+  saveP(p);
+}
+</script>
+</body>
+</html>

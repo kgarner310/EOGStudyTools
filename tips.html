@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EOG Tips & Strategies 📋</title>
+<style>
+:root {
+  --bg: #0f1923; --card: #1a2940; --card2: #1e3050;
+  --green: #4ade80; --blue: #60a5fa; --coral: #f87171;
+  --gold: #fbbf24; --purple: #a78bfa; --orange: #fb923c;
+  --text: #e0f2fe; --muted: #94a3b8; --r: 16px;
+  --ps: #60a5fa; --ls: #4ade80; --ess: #fb923c;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 60px; }
+
+.header {
+  background: linear-gradient(135deg, #0f3460, #16213e, #0f1923);
+  padding: 20px 20px 16px; text-align: center;
+  border-bottom: 2px solid #1e3a5f; position: relative;
+}
+.header a { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.85rem; text-decoration: none; font-weight: 600; }
+.header h1 { font-size: 1.5rem; margin-bottom: 2px; }
+.header p { color: var(--muted); font-size: 0.85rem; }
+
+/* Section label */
+.section-label {
+  padding: 16px 16px 8px;
+  font-size: 0.75rem; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 1px; font-weight: 700;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: #1e3a5f; }
+
+/* Day-of card */
+.day-of-card {
+  margin: 0 16px; background: var(--card); border-radius: var(--r);
+  padding: 16px; border: 2px solid var(--gold);
+  background: linear-gradient(135deg, rgba(251,191,36,.06), var(--card));
+}
+.day-of-card h2 { color: var(--gold); font-size: 1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.checklist { display: flex; flex-direction: column; gap: 8px; }
+.check-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 0.88rem; line-height: 1.4;
+  padding: 8px 10px; background: rgba(255,255,255,.03); border-radius: 10px;
+  cursor: pointer; transition: background 0.2s; user-select: none;
+}
+.check-item.checked { background: rgba(74,222,128,.08); }
+.check-box {
+  width: 22px; height: 22px; border-radius: 6px; border: 2px solid #2a4a6f;
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; transition: all 0.2s; margin-top: 1px;
+}
+.check-item.checked .check-box { background: var(--green); border-color: var(--green); color: #1a1a1a; }
+
+/* Strategy cards */
+.strategy-grid { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
+.strat-card {
+  background: var(--card); border-radius: 12px; padding: 12px 14px;
+  border-left: 4px solid var(--blue); display: flex; align-items: flex-start; gap: 10px;
+}
+.strat-num {
+  width: 26px; height: 26px; border-radius: 50%; background: var(--blue);
+  color: #1a1a1a; font-weight: 800; font-size: 0.8rem; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.strat-text { font-size: 0.88rem; line-height: 1.45; }
+.strat-text strong { color: var(--blue); }
+.warn { border-left-color: var(--coral); }
+.warn .strat-num { background: var(--coral); }
+.warn .strat-text strong { color: var(--coral); }
+
+/* Domain reference */
+.domain-section { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
+.domain-card { background: var(--card); border-radius: var(--r); overflow: hidden; }
+.domain-header {
+  padding: 10px 14px; display: flex; align-items: center; gap: 8px;
+  font-weight: 700; font-size: 0.95rem; cursor: pointer; user-select: none;
+}
+.domain-header .d-icon { font-size: 1.3rem; }
+.domain-header .toggle { margin-left: auto; font-size: 0.75rem; color: var(--muted); }
+.ps-header { background: rgba(96,165,250,.12); border-left: 4px solid var(--ps); color: var(--ps); }
+.ls-header { background: rgba(74,222,128,.12); border-left: 4px solid var(--ls); color: var(--ls); }
+.ess-header { background: rgba(251,146,60,.12); border-left: 4px solid var(--ess); color: var(--ess); }
+.domain-body { padding: 4px 14px 12px; display: none; }
+.domain-body.open { display: block; }
+.fact-list { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.fact-list li {
+  font-size: 0.82rem; line-height: 1.4; padding: 7px 10px;
+  background: rgba(255,255,255,.03); border-radius: 8px;
+  display: flex; align-items: flex-start; gap: 6px;
+}
+.fact-list li::before { content: '→'; color: var(--muted); flex-shrink: 0; font-size: 0.75rem; margin-top: 1px; }
+.fact-list li strong { color: var(--text); font-weight: 700; }
+
+/* Mindset cards */
+.mindset-grid { padding: 0 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mindset-card {
+  background: var(--card); border-radius: 12px; padding: 12px;
+  border: 1px solid #2a4a6f; text-align: center;
+}
+.mindset-icon { font-size: 1.8rem; display: block; margin-bottom: 6px; }
+.mindset-quote { font-size: 0.78rem; color: var(--muted); line-height: 1.4; font-style: italic; }
+.mindset-quote strong { color: var(--green); font-style: normal; }
+
+/* Hub button */
+.hub-btn-wrap { padding: 16px; }
+.hub-btn {
+  display: block; padding: 16px; text-align: center; border-radius: var(--r);
+  background: linear-gradient(135deg, var(--green), var(--blue));
+  color: #1a1a1a; font-weight: 800; font-size: 1rem; text-decoration: none;
+}
+
+/* Retake banner */
+.retake-banner {
+  margin: 12px 16px 4px; padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(248,113,113,.1), rgba(251,191,36,.08));
+  border: 2px solid var(--coral); border-radius: var(--r); text-align: center;
+}
+.retake-banner h2 { font-size: 1.1rem; color: var(--coral); margin-bottom: 4px; }
+.retake-banner p { font-size: 0.85rem; color: var(--muted); line-height: 1.4; }
+.countdown { font-size: 1.8rem; font-weight: 900; color: var(--gold); margin: 6px 0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="index.html">🏠 Hub</a>
+  <h1>📋 EOG Tips & Strategies</h1>
+  <p>Everything you need to crush it Thursday!</p>
+</div>
+
+<!-- Retake date banner -->
+<div class="retake-banner">
+  <h2>⚡ EOG Retake</h2>
+  <div class="countdown" id="countdown">Loading...</div>
+  <p>You've studied hard — now use these strategies to show what you know!</p>
+</div>
+
+<!-- Day-of Checklist -->
+<div class="section-label">☀️ Morning of the Test</div>
+<div class="day-of-card">
+  <h2>✅ Day-Of Checklist</h2>
+  <div class="checklist" id="checklist">
+    <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><span><strong>Eat a good breakfast</strong> — your brain needs fuel to think clearly!</span></div>
+    <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><span><strong>Get a good night's sleep</strong> — tired brains forget things they know!</span></div>
+    <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><span><strong>Bring 2+ sharpened pencils</strong> — don't let equipment slow you down</span></div>
+    <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><span><strong>Use the restroom before the test starts</strong> — one less distraction!</span></div>
+    <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><span><strong>Take 3 deep breaths</strong> when you sit down — it calms nerves instantly</span></div>
+    <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><span><strong>Remind yourself:</strong> "I studied this. I know this. I've got this!" 💪</span></div>
+  </div>
+</div>
+
+<!-- Strategies -->
+<div class="section-label">🎯 Test-Taking Strategies</div>
+<div class="strategy-grid">
+  <div class="strat-card">
+    <div class="strat-num">1</div>
+    <div class="strat-text"><strong>Read the WHOLE question</strong> before looking at the answer choices. The last few words often change everything!</div>
+  </div>
+  <div class="strat-card">
+    <div class="strat-num">2</div>
+    <div class="strat-text"><strong>Eliminate wrong answers first.</strong> Cross out the 2 obviously wrong ones, then choose between the remaining 2. You just went from 25% to 50%!</div>
+  </div>
+  <div class="strat-card">
+    <div class="strat-num">3</div>
+    <div class="strat-text"><strong>Spot the key science words:</strong> physical/chemical, inherited/acquired, abiotic/biotic, balanced/unbalanced. They tell you exactly what the question is about!</div>
+  </div>
+  <div class="strat-card">
+    <div class="strat-num">4</div>
+    <div class="strat-text"><strong>Item sets (passage + questions):</strong> Read the passage carefully — the answer is ALWAYS supported by information in the passage or your science knowledge. Don't overthink it!</div>
+  </div>
+  <div class="strat-card warn">
+    <div class="strat-num">5</div>
+    <div class="strat-text"><strong>Watch for "NOT" and "EXCEPT"!</strong> These flip the question. Slow down and re-read any question with these words.</div>
+  </div>
+  <div class="strat-card">
+    <div class="strat-num">6</div>
+    <div class="strat-text"><strong>Skip hard questions and come back.</strong> Don't get stuck! Mark it, move on, and return with fresh eyes. Never leave a blank — guess if you have to!</div>
+  </div>
+  <div class="strat-card">
+    <div class="strat-num">7</div>
+    <div class="strat-text">For <strong>"Most likely" food web questions</strong> — trace the energy flow. Removing a predator = its prey INCREASES. Removing a prey = its predator DECREASES.</div>
+  </div>
+  <div class="strat-card warn">
+    <div class="strat-num">8</div>
+    <div class="strat-text"><strong>Don't change your first answer</strong> unless you're absolutely sure. Your gut instinct is usually right!</div>
+  </div>
+</div>
+
+<!-- Domain Quick Reference -->
+<div class="section-label">🔬 Domain Quick Reference</div>
+<div class="domain-section">
+  <div class="domain-card">
+    <div class="domain-header ps-header" onclick="toggleDomain(this)">
+      <span class="d-icon">⚗️</span> Physical Science — Forces, Matter &amp; Changes
+      <span class="toggle">▼ tap to expand</span>
+    </div>
+    <div class="domain-body">
+      <ul class="fact-list">
+        <li><strong>Physical change:</strong> same substance, different form — ice melting, tearing paper, dissolving salt</li>
+        <li><strong>Chemical change:</strong> NEW substance formed — burning, rusting, souring, cooking. Signs: light, heat, gas, color change</li>
+        <li><strong>Physical property:</strong> observed without changing the substance — color, density, solubility, boiling point, magnetism</li>
+        <li><strong>Chemical property:</strong> describes how it reacts — flammability, reactivity, ability to rust or tarnish</li>
+        <li><strong>Balanced forces:</strong> net force = 0 → NO change in motion (stays still OR keeps same speed)</li>
+        <li><strong>Unbalanced forces:</strong> net force ≠ 0 → motion CHANGES (speeds up, slows down, changes direction)</li>
+        <li><strong>Non-contact forces:</strong> gravity, magnetism — act at a distance WITHOUT touching</li>
+        <li><strong>Contact forces:</strong> friction (opposes motion), applied force (push/pull) — require touching</li>
+        <li><strong>Mixture:</strong> physically combined, can be separated — saltwater, trail mix, air</li>
+        <li><strong>Pure substance:</strong> fixed composition — water (H₂O), gold (Au), oxygen (O₂)</li>
+        <li><strong>To separate mixtures:</strong> use physical properties — magnet for iron, filter for size, evaporation for solutions</li>
+      </ul>
+    </div>
+  </div>
+  <div class="domain-card">
+    <div class="domain-header ls-header" onclick="toggleDomain(this)">
+      <span class="d-icon">🌿</span> Life Science — Cells, Ecosystems &amp; Heredity
+      <span class="toggle">▼ tap to expand</span>
+    </div>
+    <div class="domain-body">
+      <ul class="fact-list">
+        <li><strong>Mitochondria:</strong> energy (ATP) — "powerhouse" — in BOTH plant and animal cells</li>
+        <li><strong>Chloroplast:</strong> photosynthesis — in PLANT cells ONLY — captures sunlight to make food</li>
+        <li><strong>Cell membrane:</strong> gatekeeper — controls what enters and exits — in ALL cells</li>
+        <li><strong>Nucleus:</strong> DNA control center — directs cell activities</li>
+        <li><strong>Circulatory system:</strong> heart + blood vessels → delivers oxygen to cells</li>
+        <li><strong>Respiratory system:</strong> lungs → gas exchange (O₂ in, CO₂ out)</li>
+        <li><strong>Digestive system:</strong> breaks food into nutrients the body uses</li>
+        <li><strong>Food web order:</strong> Sun → Producer → Primary Consumer → Secondary Consumer → Apex Predator</li>
+        <li><strong>Decomposers:</strong> bacteria and fungi — break down dead matter, return nutrients to soil</li>
+        <li><strong>Abiotic factors:</strong> NON-living — sunlight, water, temperature, soil, air</li>
+        <li><strong>Biotic factors:</strong> LIVING organisms — plants, animals, bacteria, fungi</li>
+        <li><strong>Inherited trait:</strong> from DNA (parents) — eye color, blood type, height potential</li>
+        <li><strong>Acquired trait:</strong> from experience — speaking a language, playing softball, scars</li>
+        <li><strong>Natural selection:</strong> better-adapted traits → survive → reproduce → passed on → population changes</li>
+      </ul>
+    </div>
+  </div>
+  <div class="domain-card">
+    <div class="domain-header ess-header" onclick="toggleDomain(this)">
+      <span class="d-icon">🌍</span> Earth Science — Rocks, Water Cycle &amp; Earth's Layers
+      <span class="toggle">▼ tap to expand</span>
+    </div>
+    <div class="domain-body">
+      <ul class="fact-list">
+        <li><strong>Evaporation:</strong> liquid → gas (powered by the SUN)</li>
+        <li><strong>Condensation:</strong> gas → liquid (forms clouds)</li>
+        <li><strong>Precipitation:</strong> water falls from clouds (rain, snow, sleet, hail)</li>
+        <li><strong>Transpiration:</strong> plants release water vapor through leaves</li>
+        <li><strong>Main driver of water cycle:</strong> THE SUN (provides heat energy for evaporation)</li>
+        <li><strong>Igneous rock:</strong> cooled lava or magma — examples: basalt, granite</li>
+        <li><strong>Sedimentary rock:</strong> compressed layers — FOSSILS ARE FOUND HERE — limestone, sandstone</li>
+        <li><strong>Metamorphic rock:</strong> heat + pressure transforms existing rock — marble, slate, quartzite</li>
+        <li><strong>Weathering:</strong> BREAKING rocks into smaller pieces (wind, water, ice, acid)</li>
+        <li><strong>Erosion:</strong> MOVING broken rock pieces to new locations</li>
+        <li><strong>Earth layers:</strong> Crust (thinnest) → Mantle (thickest) → Outer Core (liquid iron = magnetic field) → Inner Core (solid)</li>
+        <li><strong>Climate vs weather:</strong> Climate = 30+ year average. Weather = today's conditions</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Scientist Mindset -->
+<div class="section-label">💪 Scientist Mindset</div>
+<div class="mindset-grid">
+  <div class="mindset-card">
+    <span class="mindset-icon">🧠</span>
+    <div class="mindset-quote"><strong>"I prepared for this."</strong> Hours of study are inside my brain right now.</div>
+  </div>
+  <div class="mindset-card">
+    <span class="mindset-icon">🔍</span>
+    <div class="mindset-quote"><strong>"Read carefully."</strong> The answer is always supported by science I know.</div>
+  </div>
+  <div class="mindset-card">
+    <span class="mindset-icon">❌</span>
+    <div class="mindset-quote"><strong>"Eliminate first."</strong> Even 1 wrong answer gone = better odds.</div>
+  </div>
+  <div class="mindset-card">
+    <span class="mindset-icon">⏭️</span>
+    <div class="mindset-quote"><strong>"Skip and return."</strong> A later question might spark the memory I need.</div>
+  </div>
+  <div class="mindset-card">
+    <span class="mindset-icon">🥎</span>
+    <div class="mindset-quote"><strong>"Just like softball."</strong> Practice = preparation = performance on game day.</div>
+  </div>
+  <div class="mindset-card">
+    <span class="mindset-icon">🌟</span>
+    <div class="mindset-quote"><strong>"I've got this."</strong> Every tool I used is proof I took this seriously.</div>
+  </div>
+</div>
+
+<div class="hub-btn-wrap">
+  <a href="index.html" class="hub-btn">🏠 Back to Hub — Keep Studying! 🔥</a>
+</div>
+
+<script>
+// Countdown
+function updateCountdown() {
+  const testDate = new Date('2026-05-21T08:00:00');
+  const now = new Date();
+  const diff = testDate - now;
+  const el = document.getElementById('countdown');
+  if (diff <= 0) { el.textContent = 'Test Day! You\'ve got this! 🌟'; return; }
+  const days = Math.floor(diff / (1000*60*60*24));
+  const hrs = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+  if (days > 0) el.textContent = `${days} day${days>1?'s':''} ${hrs}h to go`;
+  else el.textContent = `${hrs} hours to go — almost there!`;
+}
+updateCountdown();
+
+function toggle(el) {
+  el.classList.toggle('checked');
+}
+
+function toggleDomain(header) {
+  const body = header.nextElementSibling;
+  const toggle = header.querySelector('.toggle');
+  const isOpen = body.classList.toggle('open');
+  toggle.textContent = isOpen ? '▲ tap to collapse' : '▼ tap to expand';
+}
+
+// Auto-expand all on desktop
+if (window.innerWidth > 600) {
+  document.querySelectorAll('.domain-body').forEach(b => {
+    b.classList.add('open');
+    const toggle = b.previousElementSibling.querySelector('.toggle');
+    if (toggle) toggle.textContent = '▲ tap to collapse';
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Droppy's Water Cycle Journey 💧</title>
+<style>
+:root {
+  --bg: #0f1923; --card: #1a2940; --card2: #1e3050;
+  --green: #4ade80; --blue: #60a5fa; --coral: #f87171;
+  --gold: #fbbf24; --purple: #a78bfa; --orange: #fb923c;
+  --text: #e0f2fe; --muted: #94a3b8; --r: 20px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 40px; }
+
+.top-bar {
+  background: var(--card); padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid #1e3a5f; position: sticky; top: 0; z-index: 10;
+}
+.top-bar a { color: var(--muted); font-size: 0.85rem; text-decoration: none; font-weight: 600; }
+.top-bar h1 { font-size: 1rem; font-weight: 700; flex: 1; text-align: center; }
+.top-bar span { font-size: 0.85rem; color: var(--gold); font-weight: 600; }
+
+/* Progress path */
+.cycle-path {
+  padding: 14px 16px 8px;
+  overflow-x: auto;
+}
+.path-inner { display: flex; align-items: center; gap: 0; min-width: max-content; padding: 0 4px; }
+.path-node {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  min-width: 48px;
+}
+.path-dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #1e3050; border: 2px solid #2a4a6f;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; transition: all 0.4s;
+}
+.path-dot.done { background: var(--green); border-color: var(--green); box-shadow: 0 0 10px rgba(74,222,128,.4); }
+.path-dot.current { background: var(--blue); border-color: var(--blue); box-shadow: 0 0 12px rgba(96,165,250,.6); animation: pulse 1.5s ease infinite; }
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
+.path-label { font-size: 0.55rem; color: var(--muted); text-align: center; max-width: 44px; line-height: 1.2; }
+.path-arrow { color: #2a4a6f; font-size: 0.75rem; margin: 0 1px; padding-bottom: 12px; }
+
+/* Stage card */
+.stage-wrap { padding: 12px 16px; }
+.stage-card {
+  border-radius: var(--r); overflow: hidden;
+  margin-bottom: 14px; border: 2px solid #1e3a5f;
+}
+.stage-scene {
+  padding: 28px 20px 20px; text-align: center;
+  display: flex; flex-direction: column; align-items: center;
+}
+.droppy { font-size: 4.5rem; display: block; margin-bottom: 12px; animation: droppyFloat 2.5s ease-in-out infinite; }
+@keyframes droppyFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+.stage-name { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; opacity: 0.9; }
+.stage-narration { font-size: 1rem; line-height: 1.55; max-width: 300px; }
+
+/* Speech bubble */
+.speech-bubble {
+  background: rgba(255,255,255,.06); border-radius: 14px;
+  padding: 12px 16px; margin: 10px 16px 0;
+  font-size: 0.9rem; line-height: 1.5; color: var(--text);
+  border: 1px solid rgba(255,255,255,.1);
+  font-style: italic; position: relative;
+}
+.speech-bubble::before {
+  content: '"'; font-size: 2rem; color: var(--blue);
+  position: absolute; top: -6px; left: 10px; font-style: normal;
+}
+
+/* Question section */
+.q-section { padding: 0 16px; }
+.q-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+.q-card {
+  background: var(--card2); border-radius: var(--r);
+  padding: 16px; margin-bottom: 10px; border: 1px solid #2a4a6f;
+}
+.q-txt { font-size: 1rem; line-height: 1.5; font-weight: 600; }
+.answers { display: flex; flex-direction: column; gap: 8px; }
+.ans-btn {
+  width: 100%; padding: 13px 14px;
+  background: var(--card); border: 2px solid #2a4a6f;
+  border-radius: 12px; color: var(--text); font-size: 0.93rem;
+  font-weight: 500; text-align: left; cursor: pointer; transition: all 0.18s;
+  display: flex; align-items: center; gap: 10px;
+}
+.ans-btn:disabled { cursor: default; }
+.ans-btn.correct { background: rgba(74,222,128,.2); border-color: var(--green); }
+.ans-btn.wrong { background: rgba(248,113,113,.2); border-color: var(--coral); }
+.ans-ltr {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: #2a4a6f; display: flex; align-items: center;
+  justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+}
+.ans-btn.correct .ans-ltr { background: var(--green); color: #1a1a1a; }
+.ans-btn.wrong .ans-ltr { background: var(--coral); color: #1a1a1a; }
+
+.fb-box {
+  margin: 10px 0; padding: 12px 14px; border-radius: 12px;
+  font-size: 0.88rem; line-height: 1.45; display: none;
+}
+.fb-box.ok { background: rgba(74,222,128,.12); border: 1px solid var(--green); }
+.fb-box.bad { background: rgba(248,113,113,.12); border: 1px solid var(--coral); }
+.fb-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 3px; }
+
+.continue-btn {
+  width: 100%; padding: 16px; border: none; border-radius: 14px;
+  font-size: 1.05rem; font-weight: 700; cursor: pointer;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  color: white; margin-top: 10px; display: none;
+}
+.intro-btn {
+  width: 100%; padding: 16px; border: none; border-radius: 14px;
+  font-size: 1.05rem; font-weight: 700; cursor: pointer;
+  background: linear-gradient(135deg, var(--blue), var(--green));
+  color: #1a1a1a; margin: 16px 0 0;
+}
+
+/* Win screen */
+.win-screen {
+  position: fixed; inset: 0; z-index: 300;
+  background: linear-gradient(180deg, #071427 0%, #0f1923 100%);
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 30px 24px; text-align: center;
+  display: none;
+}
+.win-emoji { font-size: 5rem; margin-bottom: 12px; animation: droppyFloat 2s ease-in-out infinite; }
+.win-title { font-size: 2rem; font-weight: 800; color: var(--gold); margin-bottom: 8px; }
+.win-sub { color: var(--muted); font-size: 1rem; margin-bottom: 20px; line-height: 1.5; }
+.xp-pill {
+  background: rgba(251,191,36,.15); border: 2px solid var(--gold);
+  border-radius: 14px; padding: 10px 24px;
+  font-size: 1.5rem; font-weight: 800; color: var(--gold); margin-bottom: 22px;
+}
+.cycle-summary {
+  background: var(--card); border-radius: var(--r);
+  padding: 16px; margin-bottom: 20px; width: 100%; max-width: 340px;
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+}
+.cycle-chip {
+  font-size: 0.8rem; padding: 4px 12px; border-radius: 20px;
+  background: rgba(96,165,250,.15); color: var(--blue); font-weight: 600;
+}
+.win-btns { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 300px; }
+.win-btns button, .win-btns a {
+  padding: 15px; border-radius: 12px; font-size: 1rem;
+  font-weight: 700; cursor: pointer; border: none; text-decoration: none; display: block; text-align: center;
+}
+.btn-again { background: linear-gradient(135deg, var(--blue), var(--purple)); color: white; }
+.btn-hub { background: var(--card2); color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a href="index.html">🏠</a>
+  <h1>💧 Droppy's Journey</h1>
+  <span id="xpProgress">0 XP</span>
+</div>
+
+<!-- Cycle progress path -->
+<div class="cycle-path">
+  <div class="path-inner" id="pathInner"></div>
+</div>
+
+<!-- Stage area -->
+<div class="stage-wrap">
+  <div class="stage-card" id="stageCard">
+    <div class="stage-scene" id="stageScene"></div>
+  </div>
+  <div class="speech-bubble" id="speechBubble"></div>
+</div>
+
+<!-- Question section (shown when stage has a question) -->
+<div class="q-section" id="qSection" style="display:none">
+  <div class="q-label">🔬 Answer to continue</div>
+  <div class="q-card"><div class="q-txt" id="qTxt"></div></div>
+  <div class="answers" id="answers"></div>
+  <div class="fb-box" id="fbBox">
+    <div class="fb-title" id="fbTitle"></div>
+    <div id="fbBody"></div>
+  </div>
+</div>
+
+<div style="padding:0 16px">
+  <button class="continue-btn" id="continueBtn" onclick="advance()"></button>
+  <button class="intro-btn" id="introBtn" onclick="advance()" style="display:none"></button>
+</div>
+
+<!-- Win screen -->
+<div class="win-screen" id="winScreen">
+  <div class="win-emoji">💧</div>
+  <div class="win-title">Cycle Complete! 🎉</div>
+  <div class="win-sub">Droppy made it all the way around the water cycle!<br>You answered every question correctly!</div>
+  <div class="xp-pill">+40 XP ⚡</div>
+  <div class="cycle-summary">
+    <div class="cycle-chip">☀️ Evaporation</div>
+    <div class="cycle-chip">☁️ Condensation</div>
+    <div class="cycle-chip">🌧️ Precipitation</div>
+    <div class="cycle-chip">🌊 Runoff</div>
+    <div class="cycle-chip">🌿 Transpiration</div>
+    <div class="cycle-chip">🌍 Groundwater</div>
+  </div>
+  <div class="win-btns">
+    <button class="btn-again" onclick="initCycle()">🔄 Ride Again</button>
+    <a class="btn-hub" href="index.html">🏠 Back to Hub</a>
+  </div>
+</div>
+
+<script>
+const SAVE_KEY = 'evie_eog_progress';
+const LVL_XP = [0,0,100,250,500,800,1200,1700,2300,3000,4000];
+function loadP(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY));return d||dflt();}catch(e){return dflt();}}
+function dflt(){return{xp:0,level:1,badges:[],domainCorrect:{ps:0,ls:0,ess:0},domainTotal:{ps:0,ls:0,ess:0},battingStats:{atBats:0,hits:0,homeRuns:0},flashcardsMastered:0,lastVisit:null,dailyStreak:0,bossesDefeated:[],scratchPacks:0};}
+function saveP(p){localStorage.setItem(SAVE_KEY,JSON.stringify(p));}
+function calcLvl(xp){for(let i=LVL_XP.length-1;i>=1;i--){if(xp>=LVL_XP[i])return i;}return 1;}
+
+const STAGES = [
+  {
+    id:'ocean', name:'Ocean', emoji:'🌊', icon:'🌊',
+    bg:'linear-gradient(160deg,#0a2a4a,#0f3460,#0f1923)',
+    narration:'Hi! I\'m Droppy the water droplet! I live in the vast ocean with billions of other water molecules. Right now, the Sun is shining down and warming things up... something\'s about to happen!',
+    speech:'I can feel the Sun\'s energy heating me up... I think I\'m about to go on an adventure!',
+    question:null,
+    btnText:'Begin the Journey! ☀️'
+  },
+  {
+    id:'evaporation', name:'Evaporation', emoji:'☀️', icon:'☀️',
+    bg:'linear-gradient(160deg,#4a1a0a,#b45309,#0f1923)',
+    narration:'The Sun\'s heat energy is giving me enough energy to break free from the ocean surface! I\'m changing from liquid water into water VAPOR — a gas — and floating up into the air!',
+    speech:'Wheeeee! I\'m free! I\'m invisible water vapor now, floating up toward the sky!',
+    question:{
+      q:'What process uses the Sun\'s energy to turn liquid water into water vapor (a gas)?',
+      opts:['Condensation','Precipitation','Evaporation','Transpiration'],
+      ans:2,
+      explain:'Evaporation! The Sun heats liquid water, giving molecules enough energy to escape the surface and become water vapor. It\'s the first step of the water cycle!'
+    },
+    btnText:'Rise into the sky →'
+  },
+  {
+    id:'rising', name:'Rising Up', emoji:'💨', icon:'⬆️',
+    bg:'linear-gradient(160deg,#1a1a4a,#2a2a6a,#0f1923)',
+    narration:'I\'m rising higher and higher into the atmosphere, carried by warm air currents. As I go higher, the air gets cooler and cooler...',
+    speech:'It\'s getting cold up here! I can feel myself slowing down... I might turn back into a liquid soon!',
+    question:{
+      q:'What is the MAIN energy source that drives the water cycle — causing water to evaporate?',
+      opts:['The Moon\'s gravity','Wind currents','Ocean waves','The Sun\'s heat energy'],
+      ans:3,
+      explain:'The Sun! Solar energy heats water surfaces, causing evaporation. Without the Sun\'s energy, the water cycle would stop. The Sun powers almost all cycles on Earth!'
+    },
+    btnText:'Keep rising →'
+  },
+  {
+    id:'cloud', name:'Cloud Formation', emoji:'☁️', icon:'☁️',
+    bg:'linear-gradient(160deg,#1a2a4a,#2a3a5a,#0f1923)',
+    narration:'I\'ve cooled down enough to turn back into tiny liquid droplets — and I\'m not alone! Millions of other droplets are joining me. Together we form a CLOUD! I can see the whole landscape below.',
+    speech:'Ahhh, it feels cozy floating with all my droplet friends. But this cloud is getting really heavy with water...',
+    question:{
+      q:'When water vapor rises, cools, and turns into tiny liquid droplets to form clouds, this process is called:',
+      opts:['Evaporation','Transpiration','Condensation','Precipitation'],
+      ans:2,
+      explain:'Condensation! When water vapor cools, molecules slow down and clump together as tiny liquid droplets. These form clouds. You see condensation on a cold glass of water too!'
+    },
+    btnText:'Wait for the right moment →'
+  },
+  {
+    id:'precipitation', name:'Precipitation', emoji:'🌧️', icon:'🌧️',
+    bg:'linear-gradient(160deg,#0a1a3a,#0f2550,#0f1923)',
+    narration:'The cloud is too heavy! The water droplets combine into bigger drops until they\'re too heavy to stay up. We start falling! Some of us fall as rain, others as snow or hail depending on temperature.',
+    speech:'Here I come, ground! WHEEE! — *splat!*',
+    question:{
+      q:'What is the term for water falling from clouds as rain, snow, sleet, or hail?',
+      opts:['Condensation','Transpiration','Evaporation','Precipitation'],
+      ans:3,
+      explain:'Precipitation! Any water that falls from clouds — rain, snow, sleet, or hail — is called precipitation. The type depends on air temperature as the water falls.'
+    },
+    btnText:'Land and flow →'
+  },
+  {
+    id:'runoff', name:'Runoff', emoji:'🏔️', icon:'〰️',
+    bg:'linear-gradient(160deg,#0a2a1a,#0f4a2a,#0f1923)',
+    narration:'I\'ve landed on a hillside! I start flowing downhill, joining other droplets to form a little stream, then a bigger river, rushing toward the ocean. This is called runoff!',
+    speech:'Whoa, this is like a water slide! I\'m rushing over rocks, through forests... everything I see will end up in the river!',
+    question:{
+      q:'When rain water flows over the land\'s surface into streams and rivers, this is called:',
+      opts:['Infiltration','Transpiration','Runoff','Condensation'],
+      ans:2,
+      explain:'Runoff! Water flowing over land surfaces toward lower ground eventually reaches streams, rivers, and oceans. Not all rain becomes runoff — some soaks into the ground (infiltration)!'
+    },
+    btnText:'Soak into the ground →'
+  },
+  {
+    id:'groundwater', name:'Groundwater', emoji:'🌍', icon:'⬇️',
+    bg:'linear-gradient(160deg,#2a1a0a,#4a3520,#0f1923)',
+    narration:'Some of me soaks into the soil instead of flowing over the surface! I seep through layers of rock and sand, collecting underground in an aquifer. This is groundwater — the water that fills wells!',
+    speech:'It\'s dark down here, but peaceful. I\'m in an underground reservoir. A plant\'s roots might find me here!',
+    question:{
+      q:'Water that soaks into the soil and collects in underground rock layers is called:',
+      opts:['Runoff','Precipitation','Transpiration','Groundwater'],
+      ans:3,
+      explain:'Groundwater! When water infiltrates (soaks into) the soil and reaches porous rock layers called aquifers, it becomes groundwater. Wells tap into this underground water supply!'
+    },
+    btnText:'Get absorbed by a plant →'
+  },
+  {
+    id:'transpiration', name:'Transpiration', emoji:'🌿', icon:'🌿',
+    bg:'linear-gradient(160deg,#0a2a0a,#1a4a1a,#0f1923)',
+    narration:'A tree\'s roots found me! I\'m being pulled up through the roots, stem, and into the leaves. The plant uses some of me for photosynthesis, but releases the rest as water vapor through tiny pores called stomata.',
+    speech:'I\'m a plant taxi! Up through the roots... up the stem... and OUT the leaf as water vapor! Back to the atmosphere!',
+    question:{
+      q:'When plants absorb water through roots and release water vapor through tiny pores in their leaves, this process is called:',
+      opts:['Evaporation','Condensation','Precipitation','Transpiration'],
+      ans:3,
+      explain:'Transpiration! Plants "sweat" — they pull water from the soil and release vapor through stomata (tiny leaf pores). Along with evaporation, it\'s called "evapotranspiration" and adds a LOT of water to the atmosphere!'
+    },
+    btnText:'Return to the atmosphere →'
+  },
+  {
+    id:'complete', name:'Back to Start!', emoji:'🌊', icon:'🔄',
+    bg:'linear-gradient(160deg,#071427,#0f3460,#0f1923)',
+    narration:'I\'m water vapor again in the atmosphere — and my journey has come full circle! I\'ll condense into a cloud and start the whole adventure again. The water cycle never stops!',
+    speech:'I\'ve been liquid water, water vapor, part of a cloud, rain, a river, groundwater, and a plant. I\'m the same water molecule — just in different forms! The cycle continues forever! 🌊',
+    question:null,
+    isEnd: true,
+    btnText:'Complete the Cycle! 🎉'
+  }
+];
+
+let curStage = 0, earnedXP = 0, answered = false;
+
+function initCycle() {
+  curStage = 0; earnedXP = 0; answered = false;
+  document.getElementById('winScreen').style.display = 'none';
+  updateXpDisplay();
+  renderStage();
+}
+
+function updateXpDisplay() {
+  document.getElementById('xpProgress').textContent = earnedXP + ' XP';
+}
+
+function buildPath() {
+  const inner = document.getElementById('pathInner');
+  inner.innerHTML = '';
+  STAGES.forEach((stage, i) => {
+    const node = document.createElement('div');
+    node.className = 'path-node';
+    let dotClass = 'path-dot';
+    if (i < curStage) dotClass += ' done';
+    else if (i === curStage) dotClass += ' current';
+    node.innerHTML = `<div class="${dotClass}">${stage.icon}</div><div class="path-label">${stage.name}</div>`;
+    inner.appendChild(node);
+    if (i < STAGES.length - 1) {
+      const arrow = document.createElement('div');
+      arrow.className = 'path-arrow';
+      arrow.textContent = '›';
+      inner.appendChild(arrow);
+    }
+  });
+  // Scroll path to show current
+  setTimeout(() => {
+    const curNode = inner.querySelectorAll('.path-node')[curStage];
+    if (curNode) curNode.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+  }, 100);
+}
+
+function renderStage() {
+  const stage = STAGES[curStage];
+  buildPath();
+
+  // Stage card
+  const scene = document.getElementById('stageScene');
+  scene.style.background = stage.bg;
+  scene.innerHTML = `
+    <span class="droppy">${stage.emoji}</span>
+    <div class="stage-name">${stage.name}</div>
+    <div class="stage-narration">${stage.narration}</div>`;
+
+  document.getElementById('speechBubble').textContent = stage.speech;
+
+  // Question
+  const qSection = document.getElementById('qSection');
+  const fbBox = document.getElementById('fbBox');
+  const continueBtn = document.getElementById('continueBtn');
+  const introBtn = document.getElementById('introBtn');
+  fbBox.style.display = 'none';
+  fbBox.className = 'fb-box';
+  answered = false;
+
+  if (stage.question) {
+    qSection.style.display = 'block';
+    document.getElementById('qTxt').textContent = stage.question.q;
+    const answersEl = document.getElementById('answers');
+    answersEl.innerHTML = ['A','B','C','D'].map((ltr,i) =>
+      `<button class="ans-btn" onclick="pick(${i})">
+        <span class="ans-ltr">${ltr}</span><span>${stage.question.opts[i]}</span>
+      </button>`
+    ).join('');
+    continueBtn.style.display = 'none';
+    introBtn.style.display = 'none';
+  } else {
+    qSection.style.display = 'none';
+    continueBtn.style.display = 'none';
+    introBtn.style.display = 'block';
+    introBtn.textContent = stage.btnText;
+  }
+
+  window.scrollTo(0, 0);
+}
+
+function pick(idx) {
+  if (answered) return;
+  answered = true;
+  const stage = STAGES[curStage];
+  const q = stage.question;
+  const btns = document.querySelectorAll('.ans-btn');
+  btns.forEach(b => b.disabled = true);
+  const correct = idx === q.ans;
+  btns[idx].classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) btns[q.ans].classList.add('correct');
+
+  const fb = document.getElementById('fbBox');
+  fb.style.display = 'block';
+
+  const p = loadP();
+  p.domainTotal.ess = (p.domainTotal.ess||0) + 1;
+
+  if (correct) {
+    earnedXP += 5;
+    updateXpDisplay();
+    fb.className = 'fb-box ok';
+    document.getElementById('fbTitle').textContent = '💧 Droppy advances!';
+    document.getElementById('fbBody').textContent = q.explain;
+    p.domainCorrect.ess = (p.domainCorrect.ess||0) + 1;
+    saveP(p);
+    const continueBtn = document.getElementById('continueBtn');
+    continueBtn.style.display = 'block';
+    continueBtn.textContent = STAGES[curStage].btnText;
+  } else {
+    fb.className = 'fb-box bad';
+    document.getElementById('fbTitle').textContent = '❌ Not quite — try again!';
+    document.getElementById('fbBody').textContent = q.explain;
+    saveP(p);
+    setTimeout(() => {
+      // Re-enable buttons for retry
+      btns.forEach(b => { b.disabled = false; b.classList.remove('correct','wrong'); });
+      fb.style.display = 'none';
+      answered = false;
+    }, 2000);
+  }
+}
+
+function advance() {
+  if (STAGES[curStage].isEnd) {
+    showWin();
+    return;
+  }
+  curStage++;
+  renderStage();
+}
+
+function showWin() {
+  const p = loadP();
+  const totalXP = 40;
+  p.xp = (p.xp||0) + totalXP;
+  p.level = calcLvl(p.xp);
+  if (!p.badges) p.badges = [];
+  if (!p.badges.includes('full_cycle')) p.badges.push('full_cycle');
+  saveP(p);
+  document.getElementById('winScreen').style.display = 'flex';
+}
+
+initCycle();
+</script>
+</body>
+</html>
